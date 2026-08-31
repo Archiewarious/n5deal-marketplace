@@ -1,24 +1,27 @@
-# Design skills and hooks
+# Design skills
 
-Copied from `~/Desktop/amazon/front/.claude` on 31.08.2026, at the owner's instruction, so this
-project uses the same design methodology as his other one rather than my improvisation.
+Copied from another project of the owner's on 31.08.2026, at his instruction, so this app uses
+his established design methodology rather than my improvisation.
 
-## Skills
-
-| Skill | What it is for here |
+| Skill | What it did here |
 |---|---|
-| `ui-ux-pro-max` | 67 styles, 161 palettes, 57 font pairings, 99 UX rules, 25 chart types. The typography table is what chose IBM Plex Sans for this app: row 31, "Financial Trust", *banks, finance, fintech, enterprise — excellent for data*. |
-| `design` | Brand identity, tokens, logos, icons, banners |
-| `design-system` | Three-layer token architecture (primitive → semantic → component), component specs |
-| `ui-styling` | shadcn/ui and Tailwind patterns, accessible components |
+| `ui-ux-pro-max` | 67 styles, 161 palettes, 57 font pairings, 99 UX rules, 25 chart types. Its typography table is what chose the typeface: row 31, *Financial Trust — IBM Plex Sans. Banks, finance, insurance, investment, fintech. Excellent for data.* |
+| `design` | Brand identity, tokens, logo and icon guidance |
+| `design-system` | Three-layer token architecture (primitive → semantic → component), component specs, state definitions |
+| `ui-styling` | shadcn/ui and Tailwind patterns, accessible components, responsive rules |
 | `brand` | Palette management, typography specs, consistency checklists |
-| `banner-design`, `slides` | Not used here; carried over so the set is complete |
+| `banner-design`, `slides` | Not used here; kept so the set is whole |
 
-## Hooks
+All six are MIT licensed.
 
-`settings.json` wires five of them. The one that matters for design work is
-`require-design-skill.js`: editing a UI file without having opened the design skill in that
-session produces a reminder. It exists because the skills sat in the other project unused and a
-redesign went four rounds — which is exactly what happened here too before they were copied in.
+## What was deliberately NOT copied
 
-Skills register when a session starts, so they are available from the next session, not this one.
+The other project's `.claude/hooks` and its `settings.json` came across in the first pass and
+were removed. They are good hooks — a git guard that blocks commands which erase uncommitted
+work, a reminder to open the design skill before editing UI — but their comments are a working
+log of a different client: dated incident reports, file names from that codebase, and the
+boundary agreed with another developer on that team, named.
+
+This repository is public and attached to a job application. Publishing someone else's internal
+notes to make my own tooling look thorough is not a trade worth making, so only the skills came,
+and the reason they came is written above rather than assumed.
