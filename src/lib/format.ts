@@ -2,11 +2,21 @@
 // human string here. Nothing multiplies or divides money outside this file, which is
 // what keeps rounding from drifting between the list, the card and the filters.
 
-const FULL = new Intl.NumberFormat('en-GB', {
-  style: 'currency',
-  currency: 'EUR',
-  maximumFractionDigits: 0,
-})
+// One formatter per locale, built once. The currency is always EUR — the catalogue is priced in
+// euros in every language — but the grouping and the symbol position are not: 2 500 000 € in
+// Ukrainian and Russian, €2,500,000 in English.
+const FORMATTERS = new Map<string, Intl.NumberFormat>()
+
+function money(tag: string): Intl.NumberFormat {
+  let f = FORMATTERS.get(tag)
+  if (!f) {
+    f = new Intl.NumberFormat(tag, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+    FORMATTERS.set(tag, f)
+  }
+  return f
+}
+
+const FULL = money('en-GB')
 
 /** €40.0K / €2.5M, the compact form N5Deal uses on listing cards. */
 export function formatPriceShort(cents: number): string {
@@ -17,8 +27,8 @@ export function formatPriceShort(cents: number): string {
 }
 
 /** €2,500,000 — used where the exact number matters (asset page, admin). */
-export function formatPriceFull(cents: number): string {
-  return FULL.format(cents / 100)
+export function formatPriceFull(cents: number, tag = 'en-GB'): string {
+  return money(tag).format(cents / 100)
 }
 
 function trim(n: number): string {
@@ -38,6 +48,6 @@ export function parsePriceToCents(input: string): number | null {
   return Math.round(n * mult * 100)
 }
 
-export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+export function formatDate(iso: string, tag = 'en-GB'): string {
+  return new Date(iso).toLocaleDateString(tag, { month: 'short', year: 'numeric' })
 }

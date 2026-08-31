@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/session'
+import { getT } from '@/lib/locale'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { parseQuery } from '@/lib/parseQuery'
 import { aiEnabled } from '@/lib/ai'
@@ -11,7 +12,10 @@ import { AssetFilters } from '@/components/AssetFilters'
 import { TopNav } from '@/components/TopNav'
 import type { Asset, BuyerProfile } from '@/lib/types'
 
-export const metadata = { title: 'All listings' }
+export async function generateMetadata() {
+  const t = await getT()
+  return { title: t('listing.allListings') }
+}
 
 type Scored = { a: Asset; score: number | undefined }
 
@@ -19,6 +23,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
 export default async function AssetsPage({ searchParams }: { searchParams: SearchParams }) {
   const profile = await requireProfile()
+  const t = await getT()
   const sp = await searchParams
   const supabase = await createClient()
 
@@ -69,8 +74,11 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   const peerSet = (a: Asset) => {
     const sectorPeers = pricesBySector[a.sector] ?? []
     return sectorPeers.length >= 3
-      ? { peersCents: sectorPeers, peerLabel: `Price against ${sectorPeers.length} other ${a.sector} listings` }
-      : { peersCents: allPrices, peerLabel: `Price against all ${allPrices.length} listings` }
+      ? {
+          peersCents: sectorPeers,
+          peerLabel: t('chart.againstSector', { n: sectorPeers.length, sector: a.sector }),
+        }
+      : { peersCents: allPrices, peerLabel: t('chart.againstAll', { n: allPrices.length }) }
   }
   const countries = [...new Set(all.map((a) => a.country))].sort()
 
@@ -156,13 +164,10 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs text-faint">N5Deal / All listings</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-              Licensed assets and businesses
-            </h1>
+            <p className="text-xs text-faint">{t('assets.crumb')}</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t('assets.title')}</h1>
             <p className="mt-1 text-sm text-muted">
-              Banks, EMIs, payment institutions and crypto entities across{' '}
-              {countries.length} jurisdictions.
+              {t('assets.lede', { n: countries.length })}
             </p>
           </div>
 
@@ -171,7 +176,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           <div className="rounded-xl border bg-surface px-4 py-3 text-right">
             <p className="flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-wider text-faint">
               <span className="size-1.5 rounded-full bg-seller" />
-              Value on the platform
+              {t('assets.valueOnPlatform')}
             </p>
             <p className="mt-0.5 font-mono text-xl font-semibold tabular-nums">
               {formatPriceFull(all.reduce((sum, a) => sum + a.asking_price_cents, 0))}
@@ -188,72 +193,71 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
 
         {error ? (
           <p className="mb-4 rounded-lg border border-danger bg-danger-bg px-3 py-2 text-sm text-danger">
-            The catalogue could not be loaded in full. Showing what was received.
+            {t('assets.loadFailed')}
           </p>
         ) : null}
 
         {profile.status === 'SUSPENDED' && (
           <p className="mb-4 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
-            Your account is suspended, so published listings are hidden from you. Contact the
-            platform manager to restore access.
+            {t('assets.suspendedNotice')}
           </p>
         )}
 
         {maxPriceUnreadable && (
           <p className="mb-4 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
-            &ldquo;{rawMax}&rdquo; could not be read as a price, so no price cap was applied. Try
-            2.5M, 400K or 40000.
+            {t('assets.badPrice', { value: rawMax })}
           </p>
         )}
 
         {reading && (
           <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-accent-text/30 bg-accent/[0.07] px-3 py-2 text-sm">
             <span className="font-mono text-[10px] uppercase tracking-wider text-accent-text">
-              Read as
+              {t('assets.readAs')}
             </span>
             <span className="text-muted">{reading}</span>
             <Link href="/assets" className="ml-auto text-xs text-faint transition hover:text-fg">
-              Clear
+              {t('assets.clearReading')}
             </Link>
           </p>
         )}
 
         {textIgnored && (
           <p className="mb-4 rounded-lg border bg-surface px-3 py-2 text-sm text-muted">
-            No listing contains &ldquo;{q.text}&rdquo;. Showing the{' '}
-            {structured.length === 1 ? 'listing' : 'listings'} that match the rest of your search.
+            {t('assets.textIgnored', { text: q.text })}
           </p>
         )}
 
         {mandate && rows.every((r) => r.score === undefined) && rows.length > 0 && (
           <p className="mb-4 rounded-lg border bg-surface px-3 py-2 text-sm text-muted">
-            Your mandate has no criteria yet, so nothing can be ranked against it.{' '}
+            {t('assets.noMandate')}{' '}
             <Link href="/buyer/profile" className="text-accent-text hover:underline">
-              Describe what you are looking for
+              {t('assets.describeMandate')}
             </Link>{' '}
-            and this list will reorder itself.
+            {t('assets.andReorder')}
           </p>
         )}
 
         {/* The filters are plain GET forms, so a filter change is a navigation and the count
             is the only thing that reports what happened. aria-live makes it report to everyone. */}
         <p aria-live="polite" className="mb-3 text-sm text-faint">
-          {rows.length} of {all.length} listings
+          {t('assets.count', { shown: rows.length, total: all.length })}
+          {' · '}
           {sortedByFit && rows.some((r) => r.score !== undefined)
-            ? ' · sorted by fit with your mandate'
+            ? t('assets.byFit')
             : sort === 'price-desc'
-              ? ' · most expensive first'
+              ? t('assets.byPriceDesc')
               : sort === 'price-asc'
-                ? ' · cheapest first'
+                ? t('assets.byPriceAsc')
                 : sort === 'views'
-                  ? ' · most viewed first'
-                  : ' · newest first'}
+                  ? t('assets.byViews')
+                  : t('assets.byNew')}
         </p>
 
         <div className="grid gap-4">
           {rows.map(({ a, score }, i) => (
             <div key={a.id} className="rise" style={{ animationDelay: `${Math.min(i, 6) * 60}ms` }}>
             <AssetCard
+              t={t}
               asset={a}
               matchScore={score}
               {...peerSet(a)}
@@ -263,14 +267,14 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           {rows.length === 0 && (
             <div className="rounded-xl border bg-surface px-5 py-10 text-center">
               <p className="text-sm text-muted">
-                Nothing matches these filters.
-                {all.length > 0 && ` All ${all.length} listings are still there.`}
+                {t('assets.emptyTitle')}
+                {all.length > 0 && ` ${t('assets.emptyRest', { n: all.length })}`}
               </p>
               <Link
                 href="/assets"
                 className="mt-4 inline-block rounded-full border px-5 py-2 text-sm text-accent-text transition hover:border-accent-text"
               >
-                Clear every filter
+                {t('assets.clearFilters')}
               </Link>
             </div>
           )}

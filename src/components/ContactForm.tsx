@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/components/LocaleProvider'
 
 // Contacting the other side is a single insert. The RLS policy checks that from_user_id
 // is the caller and that the caller is active, so a suspended account cannot send
@@ -21,6 +22,7 @@ export function ContactForm({
   /** Inside a thread the heading and the framing are already on the page. */
   compact?: boolean
 }) {
+  const t = useT()
   const router = useRouter()
   const [message, setMessage] = useState('')
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
@@ -35,7 +37,7 @@ export function ContactForm({
     const { data: userData } = await supabase.auth.getUser()
     const from = userData.user?.id
     if (!from) {
-      setError('Session expired. Sign in again.')
+      setError(t('session.expired'))
       setState('error')
       return
     }
@@ -62,7 +64,7 @@ export function ContactForm({
   if (disabled) {
     return (
       <section className="rounded-xl border border-warn bg-warn-bg p-5 text-sm text-warn">
-        Your account is suspended, so you cannot contact other participants.
+        {t('contact.suspended')}
       </section>
     )
   }
@@ -71,10 +73,8 @@ export function ContactForm({
     <section className={compact ? '' : 'rounded-xl border bg-surface p-5'}>
       {!compact && (
         <>
-          <h2 className="mb-1 text-sm font-medium">Contact {toName}</h2>
-          <p className="mb-3 text-xs text-faint">
-            The message is stored on the platform; both sides and a platform manager can see it.
-          </p>
+          <h2 className="mb-1 text-sm font-medium">{t('contact.heading', { name: toName })}</h2>
+          <p className="mb-3 text-xs text-faint">{t('contact.note')}</p>
         </>
       )}
 
@@ -86,28 +86,26 @@ export function ContactForm({
             role="status"
             className="rounded-lg border border-ok bg-ok-bg px-3 py-2 text-sm text-ok"
           >
-            Message sent.
+            {t('contact.sent')}
           </p>
           <button
             onClick={() => setState('idle')}
             className="text-xs text-faint transition hover:text-fg"
           >
-            Send another
+            {t('contact.another')}
           </button>
         </div>
       ) : (
         <form onSubmit={send} className="grid gap-3">
           <label className="grid gap-1.5">
-            <span className="sr-only">Message to {toName}</span>
+            <span className="sr-only">{t('contact.label', { name: toName })}</span>
             <textarea
               required
               minLength={10}
               rows={3}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder={
-                compact ? 'Write a reply.' : 'Introduce yourself and say what you would like to discuss.'
-              }
+              placeholder={t(compact ? 'contact.replyPlaceholder' : 'contact.placeholder')}
               className="rounded-lg border bg-field px-3 py-2 text-sm"
             />
           </label>
@@ -116,7 +114,13 @@ export function ContactForm({
               disabled={state === 'sending'}
               className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-accent-fg disabled:opacity-50"
             >
-              {state === 'sending' ? 'Sending…' : compact ? 'Send reply' : 'Send message'}
+              {t(
+                state === 'sending'
+                  ? 'contact.sending'
+                  : compact
+                    ? 'contact.sendReply'
+                    : 'contact.send',
+              )}
             </button>
             {error && (
               <p role="alert" className="text-sm text-danger">

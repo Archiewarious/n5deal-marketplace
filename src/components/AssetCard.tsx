@@ -3,6 +3,7 @@ import { formatPriceShort, formatDate } from '@/lib/format'
 import { CountryTag } from '@/components/CountryTag'
 import { PriceChart } from './PriceChart'
 import type { Asset } from '@/lib/types'
+import type { T } from '@/lib/i18n'
 
 // The listing card, laid out the way the reference site lays out its own.
 //
@@ -22,10 +23,12 @@ function Row({
   label,
   value,
   tone,
+  t,
 }: {
   label: string
   value: string | number | null
   tone?: 'accent' | 'ok'
+  t: T
 }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-lg border bg-field px-4 py-2.5">
@@ -43,7 +46,7 @@ function Row({
                 : 'font-medium'
         }`}
       >
-        {value ?? 'N/A'}
+        {value ?? t('card.na')}
       </span>
     </div>
   )
@@ -56,12 +59,19 @@ const STATE_STYLE: Record<Asset['status'], string> = {
   REMOVED: 'text-danger bg-danger-bg',
 }
 
+const STATE_KEY: Record<Asset['status'], string> = {
+  PUBLISHED: 'state.published',
+  DRAFT: 'state.draft',
+  SUSPENDED: 'state.suspended',
+  REMOVED: 'state.removed',
+}
+
 /** The platform's own check on a listing, drawn as the seal it is rather than as a tick. */
-function ValidatedSeal() {
+function ValidatedSeal({ t }: { t: T }) {
   return (
     <span
       className="relative grid size-11 shrink-0 place-items-center rounded-full bg-ok-bg text-ok ring-1 ring-ok/40"
-      title="Checked by the platform"
+      title={t('card.validatedTitle')}
     >
       <svg viewBox="0 0 44 44" className="absolute inset-0 size-full" aria-hidden>
         <circle
@@ -78,20 +88,27 @@ function ValidatedSeal() {
       <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" aria-hidden>
         <path d="M5 12.5l4.2 4.2L19 7" strokeWidth="2.2" strokeLinecap="round" />
       </svg>
-      <span className="sr-only">Validated</span>
+      <span className="sr-only">{t('card.validated')}</span>
     </span>
   )
 }
 
+// `t` arrives as a prop rather than being fetched here, and that is forced by a real
+// constraint rather than by taste: the editor renders this exact card as a live preview from a
+// client component, so the moment this file imports the server-only locale helper the whole
+// module graph fails to build. A prop is also the honest shape — the card is a pure function of
+// a listing and a dictionary.
 export function AssetCard({
   asset,
+  t,
   matchScore,
   showStatus = false,
   peersCents = [],
-  peerLabel = 'Asking price against comparable listings',
+  peerLabel,
   linked = true,
 }: {
   asset: Asset
+  t: T
   matchScore?: number
   showStatus?: boolean
   /** Off for the live preview in the editor, where the row does not exist yet. */
@@ -129,43 +146,47 @@ export function AssetCard({
         <div className="flex shrink-0 items-center gap-2">
           {matchScore !== undefined && (
             <span className="rounded-full border border-accent-text px-3 py-1 font-mono text-[11px] text-accent-text">
-              {matchScore}% match
+              {t('card.match', { n: matchScore })}
             </span>
           )}
           {showStatus && (
             <span className={`rounded-full px-3 py-1 text-[11px] ${STATE_STYLE[asset.status]}`}>
-              {asset.status.toLowerCase()}
+              {t(STATE_KEY[asset.status])}
             </span>
           )}
-          {asset.validated && <ValidatedSeal />}
+          {asset.validated && <ValidatedSeal t={t} />}
         </div>
       </header>
 
       <p className="mb-4 rounded-lg bg-elevated px-4 py-2 text-center text-xs text-muted">
-        Type of asset{' '}
+        {t('card.typeOfAsset')}{' '}
         <span className="text-accent-text">
-          {asset.asset_kind === 'LICENSE_ONLY' ? 'Licence only' : 'Active business'}
+          {asset.asset_kind === 'LICENSE_ONLY'
+            ? t('filters.licenceOnly')
+            : t('filters.activeBusiness')}
         </span>
       </p>
 
       <div className="grid gap-1.5">
-        <Row label="Price" value={formatPriceShort(asset.asking_price_cents)} tone="accent" />
-        <Row label="Country" value={asset.country} />
-        <Row label="Type of business" value={asset.sector} />
+        <Row t={t} label={t('card.price')} tone="accent"
+          value={formatPriceShort(asset.asking_price_cents)} />
+        <Row t={t} label={t('card.country')} value={asset.country} />
+        <Row t={t} label={t('card.typeOfBusiness')} value={asset.sector} />
         <Row
-          label="Business status"
-          value={asset.business_state === 'ACTIVE' ? 'Active' : 'Not active'}
+          t={t}
+          label={t('card.businessStatus')}
+          value={asset.business_state === 'ACTIVE' ? t('card.active') : t('card.notActive')}
           tone={asset.business_state === 'ACTIVE' ? 'ok' : undefined}
         />
-        <Row label="Type of licence" value={asset.license_type} />
-        <Row label="Employees" value={asset.employees} />
-        <Row label="Year of issue" value={asset.year_of_issue} />
-        <Row label="Regulator" value={asset.regulator} />
+        <Row t={t} label={t('card.typeOfLicence')} value={asset.license_type} />
+        <Row t={t} label={t('card.employees')} value={asset.employees} />
+        <Row t={t} label={t('card.yearOfIssue')} value={asset.year_of_issue} />
+        <Row t={t} label={t('card.regulator')} value={asset.regulator} />
       </div>
 
       {asset.included_activities.length > 0 && (
         <section className="mt-4 rounded-xl border border-accent-text/15 bg-accent/[0.07] p-4">
-          <p className="mb-3 text-xs text-accent-text">Included activities</p>
+          <p className="mb-3 text-xs text-accent-text">{t('card.included')}</p>
           <div className="flex flex-wrap gap-2">
             {asset.included_activities.map((a) => (
               <span
@@ -181,7 +202,7 @@ export function AssetCard({
 
       {asset.description && (
         <section className="mt-3 rounded-xl border border-accent-text/15 bg-accent/[0.07] p-4">
-          <p className="mb-2 text-xs text-accent-text">Asset info</p>
+          <p className="mb-2 text-xs text-accent-text">{t('card.assetInfo')}</p>
           <p className="text-sm leading-relaxed text-muted">{asset.description}</p>
         </section>
       )}
@@ -189,23 +210,24 @@ export function AssetCard({
       {peersCents.length >= 3 && (
         <section className="mt-4 rounded-xl border bg-field/50 p-4">
           <PriceChart
+            t={t}
             priceCents={asset.asking_price_cents}
             peersCents={peersCents}
-            label={peerLabel}
+            label={peerLabel ?? t('chart.comparable')}
           />
         </section>
       )}
 
       <footer className="mt-4 flex items-center justify-between border-t pt-4">
         <p className="font-mono text-xs text-faint">
-          {formatDate(asset.created_at)} · {asset.views} views
+          {formatDate(asset.created_at)} · {asset.views} {t('card.views')}
         </p>
         {linked && (
           <Link
             href={`/assets/${asset.id}`}
             className="relative rounded-full bg-accent px-6 py-2 text-sm font-medium text-accent-fg transition hover:opacity-90"
           >
-            View asset
+            {t('card.viewAsset')}
           </Link>
         )}
       </footer>

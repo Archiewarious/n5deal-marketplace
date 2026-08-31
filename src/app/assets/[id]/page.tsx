@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/session'
+import { getT } from '@/lib/locale'
 import { formatPriceFull, formatDate } from '@/lib/format'
 import { matchAssetToBuyer } from '@/lib/matching'
 import { TopNav } from '@/components/TopNav'
@@ -10,30 +11,47 @@ import { PriceChart } from '@/components/PriceChart'
 import { CountryTag } from '@/components/CountryTag'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 
-function Field({ label, value }: { label: string; value: string | number | null }) {
+function Field({
+  t,
+  label,
+  value,
+}: {
+  t: Awaited<ReturnType<typeof getT>>
+  label: string
+  value: string | number | null
+}) {
   return (
     <div className="rounded-lg border bg-field px-3 py-2">
       <p className="text-[10px] uppercase tracking-wider text-faint">{label}</p>
-      <p className="text-sm">{value ?? 'N/A'}</p>
+      <p className="text-sm">{value ?? t('card.na')}</p>
     </div>
   )
+}
+
+const STATE_KEY: Record<Asset['status'], string> = {
+  PUBLISHED: 'state.published',
+  DRAFT: 'state.draft',
+  SUSPENDED: 'state.suspended',
+  REMOVED: 'state.removed',
 }
 
 // A shared listing link should say which listing it is, in the tab and in the preview card.
 // RLS applies here too: a title only comes back for a row this session may read.
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const t = await getT()
   const supabase = await createClient()
   const { data } = await supabase
     .from('assets')
     .select('title')
     .eq('id', id)
     .maybeSingle<{ title: string }>()
-  return { title: data?.title ?? 'Listing' }
+  return { title: data?.title ?? t('meta.listing') }
 }
 
 export default async function AssetPage({ params }: { params: Promise<{ id: string }> }) {
   const profile = await requireProfile()
+  const t = await getT()
   const { id } = await params
   const supabase = await createClient()
 
@@ -69,8 +87,8 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   const useSector = sectorPeers.length >= 3
   const peersCents = (useSector ? sectorPeers : published).map((r) => r.asking_price_cents)
   const peerLabel = useSector
-    ? `Price against ${peersCents.length} other ${asset.sector} listings`
-    : `Price against all ${peersCents.length} listings`
+    ? t('chart.againstSector', { n: peersCents.length, sector: asset.sector })
+    : t('chart.againstAll', { n: peersCents.length })
 
   let match: ReturnType<typeof matchAssetToBuyer> | null = null
   if (profile.role === 'BUYER') {
@@ -87,21 +105,23 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
       <TopNav profile={profile} />
       <main id="content" className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">
         <Link href="/assets" className="text-xs text-faint transition hover:text-fg">
-          ← All listings
+          ← {t('listing.allListings')}
         </Link>
 
         <div className="mt-4 mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <p className="text-xs text-faint">Asset ID #{asset.public_id}</p>
+              <p className="text-xs text-faint">
+                {t('listing.assetId')} #{asset.public_id}
+              </p>
               {asset.validated && (
                 <span className="rounded-full bg-ok-bg px-2 py-0.5 text-[10px] text-ok">
-                  Validated
+                  {t('card.validated')}
                 </span>
               )}
               {asset.status !== 'PUBLISHED' && (
                 <span className="rounded-full bg-warn-bg px-2 py-0.5 text-[10px] text-warn">
-                  {asset.status.toLowerCase()}
+                  {t(STATE_KEY[asset.status])}
                 </span>
               )}
             </div>
@@ -111,7 +131,8 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
             </div>
             {seller && (
               <p className="mt-1 text-sm text-muted">
-                Listed by {seller.company ?? seller.full_name} · {formatDate(asset.created_at)}
+                {t('listing.listedBy')} {seller.company ?? seller.full_name} ·{' '}
+                {formatDate(asset.created_at)}
               </p>
             )}
           </div>
@@ -122,11 +143,13 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 href={`/seller/assets/${asset.id}/edit`}
                 className="rounded-full border px-4 py-2 text-sm text-muted transition hover:border-accent-text hover:text-accent-text"
               >
-                Edit listing
+                {t('listing.edit')}
               </Link>
             )}
             <div className="rounded-xl border px-5 py-3 text-right">
-              <p className="text-[10px] uppercase tracking-wider text-faint">Asking price</p>
+              <p className="text-[10px] uppercase tracking-wider text-faint">
+                {t('listing.askingPrice')}
+              </p>
               <p className="font-mono text-2xl font-semibold tabular-nums">
                 {formatPriceFull(asset.asking_price_cents)}
               </p>
@@ -138,9 +161,9 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
           <section className="mb-6 rounded-xl border bg-surface p-5">
             <div className="mb-3 flex items-center gap-3">
               <span className="rounded-full border border-accent-text px-3 py-1 text-sm text-accent-text">
-                {match.score}% match
+                {t('card.match', { n: match.score ?? '' })}
               </span>
-              <p className="text-sm text-muted">against your mandate</p>
+              <p className="text-sm text-muted">{t('listing.againstMandate')}</p>
             </div>
             <ul className="grid gap-1 text-sm">
               {match.reasons.map((r) => (
@@ -155,6 +178,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         {peersCents.length >= 3 && (
           <section className="mb-6 rounded-xl border bg-surface p-5">
             <PriceChart
+              t={t}
               priceCents={asset.asking_price_cents}
               peersCents={peersCents}
               label={peerLabel}
@@ -163,25 +187,31 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         )}
 
         <section className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Field label="Country" value={asset.country} />
-          <Field label="Type of licence" value={asset.license_type} />
-          <Field label="Type of business" value={asset.sector} />
+          <Field t={t} label={t('card.country')} value={asset.country} />
+          <Field t={t} label={t('card.typeOfLicence')} value={asset.license_type} />
+          <Field t={t} label={t('card.typeOfBusiness')} value={asset.sector} />
           <Field
-            label="Business status"
-            value={asset.business_state === 'ACTIVE' ? 'Active' : 'Not active'}
+            t={t}
+            label={t('card.businessStatus')}
+            value={asset.business_state === 'ACTIVE' ? t('card.active') : t('card.notActive')}
           />
           <Field
-            label="Asset type"
-            value={asset.asset_kind === 'LICENSE_ONLY' ? 'Licence only' : 'Active business'}
+            t={t}
+            label={t('listing.assetType')}
+            value={
+              asset.asset_kind === 'LICENSE_ONLY'
+                ? t('filters.licenceOnly')
+                : t('filters.activeBusiness')
+            }
           />
-          <Field label="Employees" value={asset.employees} />
-          <Field label="Year of issue" value={asset.year_of_issue} />
-          <Field label="Regulatory" value={asset.regulator} />
+          <Field t={t} label={t('card.employees')} value={asset.employees} />
+          <Field t={t} label={t('card.yearOfIssue')} value={asset.year_of_issue} />
+          <Field t={t} label={t('card.regulatory')} value={asset.regulator} />
         </section>
 
         {asset.included_activities.length > 0 && (
           <section className="mb-3 rounded-xl border border-accent-text/15 bg-accent/[0.07] p-5">
-            <p className="mb-3 text-sm text-accent-text">Included activities</p>
+            <p className="mb-3 text-sm text-accent-text">{t('card.included')}</p>
             <div className="flex flex-wrap gap-2">
               {asset.included_activities.map((a) => (
                 <span
@@ -197,7 +227,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
 
         {asset.description && (
           <section className="mb-6 rounded-xl border border-accent-text/15 bg-accent/[0.07] p-5">
-            <p className="mb-2 text-sm text-accent-text">Asset info</p>
+            <p className="mb-2 text-sm text-accent-text">{t('card.assetInfo')}</p>
             <p className="text-sm leading-relaxed text-muted">{asset.description}</p>
           </section>
         )}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/components/LocaleProvider'
 import { SECTORS, type BuyerProfile, type Profile } from '@/lib/types'
 
 const input = 'rounded-lg border bg-field px-3 py-2 text-sm'
@@ -14,6 +15,7 @@ export function MandateForm({
   profile: Profile
   mandate: BuyerProfile | null
 }) {
+  const t = useT()
   const userId = profile.id
   const router = useRouter()
   const [sectors, setSectors] = useState<string[]>(mandate?.sectors ?? [])
@@ -80,44 +82,44 @@ export function MandateForm({
   return (
     <form onSubmit={submit} className="grid gap-6">
       <fieldset className="grid gap-4">
-        <legend className="mb-2 text-sm font-medium">Who you are</legend>
+        <legend className="mb-2 text-sm font-medium">{t('mandate.whoYouAre')}</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="grid gap-1.5">
-            <span className="text-xs text-muted">Full name</span>
+            <span className="text-xs text-muted">{t('mandate.fullName')}</span>
             <input name="full_name" required defaultValue={profile.full_name} className={input} />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-xs text-muted">Company</span>
+            <span className="text-xs text-muted">{t('mandate.company')}</span>
             <input name="company" defaultValue={profile.company ?? ''} className={input} placeholder="Harbour Capital" />
           </label>
         </div>
       </fieldset>
 
       <fieldset className="grid gap-4">
-        <legend className="mb-2 text-sm font-medium">What you are looking for</legend>
+        <legend className="mb-2 text-sm font-medium">{t('mandate.lookingFor')}</legend>
       <label className="grid gap-1.5">
-        <span className="text-xs text-muted">Headline</span>
+        <span className="text-xs text-muted">{t('mandate.headline')}</span>
         <input
           name="headline"
           defaultValue={mandate?.headline ?? ''}
           className={input}
-          placeholder="Payments and EMI across the EEA"
+          placeholder={t('mandate.headlinePlaceholder')}
         />
       </label>
 
       <label className="grid gap-1.5">
-        <span className="text-xs text-muted">What you are looking for</span>
+        <span className="text-xs text-muted">{t('mandate.lookingFor')}</span>
         <textarea
           name="description"
           rows={4}
           defaultValue={mandate?.description ?? ''}
           className={input}
-          placeholder="Hard requirements first — a seller reads this to decide whether to approach you."
+          placeholder={t('mandate.descriptionPlaceholder')}
         />
       </label>
 
       <div className="grid gap-1.5">
-        <span className="text-xs text-muted">Sectors</span>
+        <span className="text-xs text-muted">{t('mandate.sectors')}</span>
         <div className="flex flex-wrap gap-2">
           {SECTORS.map((s) => (
             <button
@@ -133,24 +135,24 @@ export function MandateForm({
           ))}
         </div>
         <span className="text-[11px] text-faint">
-          Leave all unselected to see every sector.
+          {t('mandate.sectorsHint')}
         </span>
       </div>
 
       <label className="grid gap-1.5">
-        <span className="text-xs text-muted">Jurisdictions</span>
+        <span className="text-xs text-muted">{t('mandate.jurisdictions')}</span>
         <input
           name="jurisdictions"
           defaultValue={mandate?.jurisdictions.join(', ') ?? ''}
           className={input}
           placeholder="Lithuania, Ireland, Netherlands"
         />
-        <span className="text-[11px] text-faint">Comma separated. Empty means anywhere.</span>
+        <span className="text-[11px] text-faint">{t('mandate.jurisdictionsHint')}</span>
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-1.5">
-          <span className="text-xs text-muted">Ticket from, EUR</span>
+          <span className="text-xs text-muted">{t('mandate.ticketFrom')}</span>
           <input
             name="ticket_min_eur"
             type="number"
@@ -160,7 +162,7 @@ export function MandateForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className="text-xs text-muted">Ticket up to, EUR</span>
+          <span className="text-xs text-muted">{t('mandate.ticketTo')}</span>
           <input
             name="ticket_max_eur"
             type="number"
@@ -186,11 +188,11 @@ export function MandateForm({
           disabled={busy}
           className="rounded-full bg-accent px-6 py-2 text-sm font-medium text-accent-fg disabled:opacity-50"
         >
-          {busy ? 'Saving…' : 'Save'}
+          {busy ? t('form.saving') : t('mandate.save')}
         </button>
         {saved && (
           <span role="status" className="text-sm text-ok">
-            Saved.
+            {t('mandate.saved')}
           </span>
         )}
       </div>

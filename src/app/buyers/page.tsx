@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/session'
+import { getT } from '@/lib/locale'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { TopNav } from '@/components/TopNav'
 import { BuyerFilters } from '@/components/BuyerFilters'
@@ -8,12 +9,16 @@ import { matchAssetToBuyer } from '@/lib/matching'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 
-export const metadata = { title: 'Buyer mandates' }
+export async function generateMetadata() {
+  const t = await getT()
+  return { title: t('buyers.title') }
+}
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
 export default async function BuyersPage({ searchParams }: { searchParams: SearchParams }) {
   const profile = await requireRole('SELLER', 'MANAGER')
+  const t = await getT()
   const sp = await searchParams
   const supabase = await createClient()
   const str = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? ''
@@ -75,19 +80,17 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
       <TopNav profile={profile} />
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <div className="mb-6">
-          <p className="text-xs text-faint">N5Deal / Buyers</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Buyer mandates</h1>
-          <p className="mt-1 text-sm text-muted">
-            What each buyer is looking for, so you can approach the right counterparty.
-          </p>
+          <p className="text-xs text-faint">{t('buyers.crumb')}</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t('buyers.title')}</h1>
+          <p className="mt-1 text-sm text-muted">{t('buyers.lede')}</p>
         </div>
 
-        <LoadWarning what="The buyer directory" error={mandatesError ?? peopleError} />
+        <LoadWarning what={t('admin.loadBuyers')} error={mandatesError ?? peopleError} />
 
         <BuyerFilters sectors={allSectors} jurisdictions={allJurisdictions} />
 
         <p className="mb-3 text-sm text-faint">
-          {rows.length} of {mandates.length} buyers
+          {t('buyers.count', { shown: rows.length, total: mandates.length })}
         </p>
 
         <div className="grid gap-4">
@@ -99,7 +102,7 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
                     {person.company ?? person.full_name}
                     {person.status === 'SUSPENDED' && (
                       <span className="ml-2 rounded-full bg-danger-bg px-2 py-0.5 text-[10px] text-danger">
-                        suspended
+                        {t('nav.suspended')}
                       </span>
                     )}
                   </h2>
@@ -117,14 +120,16 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
                               : 'text-faint'
                           }`}
                         >
-                          {fits} of your {myAssets.length} fit
+                          {t('buyers.fit', { fits, total: myAssets.length })}
                         </span>
                       )
                     })()}
                   <div className="rounded-lg border px-3 py-2 text-right">
-                    <p className="text-[10px] uppercase tracking-wider text-faint">Ticket</p>
+                    <p className="text-[10px] uppercase tracking-wider text-faint">
+                      {t('buyers.ticket')}
+                    </p>
                     <p className="font-mono text-sm tabular-nums">
-                      {formatTicket(mandate.ticket_min_eur, mandate.ticket_max_eur)}
+                      {formatTicket(mandate.ticket_min_eur, mandate.ticket_max_eur, t)}
                     </p>
                   </div>
                 </div>
@@ -152,14 +157,14 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
                   href={`/buyers/${mandate.user_id}`}
                   className="rounded-full border px-4 py-1.5 text-xs transition hover:border-accent-text hover:text-accent-text"
                 >
-                  View and contact
+                  {t('buyers.viewAndContact')}
                 </Link>
               </div>
             </article>
           ))}
           {rows.length === 0 && (
             <p className="rounded-xl border bg-surface px-5 py-8 text-center text-sm text-muted">
-              No buyer matches these filters.
+              {t('buyers.empty')}
             </p>
           )}
         </div>
@@ -168,11 +173,15 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
   )
 }
 
-function formatTicket(min: number | null, max: number | null): string {
+function formatTicket(
+  min: number | null,
+  max: number | null,
+  t: Awaited<ReturnType<typeof getT>>,
+): string {
   const f = (n: number) =>
     n >= 1_000_000 ? `€${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M` : `€${Math.round(n / 1000)}K`
   if (min !== null && max !== null) return `${f(min)} – ${f(max)}`
-  if (max !== null) return `up to ${f(max)}`
-  if (min !== null) return `from ${f(min)}`
-  return 'Any'
+  if (max !== null) return t('buyers.ticketUpTo', { price: f(max) })
+  if (min !== null) return t('buyers.ticketFrom', { price: f(min) })
+  return t('buyers.ticketAny')
 }

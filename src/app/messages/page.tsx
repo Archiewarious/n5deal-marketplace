@@ -1,13 +1,18 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/session'
+import { getLocale, getT } from '@/lib/locale'
+import { intlTag } from '@/lib/i18n'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { TopNav } from '@/components/TopNav'
 import { ContactForm } from '@/components/ContactForm'
 import type { Asset, ContactRequest, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 
-export const metadata = { title: 'Messages' }
+export async function generateMetadata() {
+  const t = await getT()
+  return { title: t('nav.messages') }
+}
 
 const ROLE_TONE: Record<Profile['role'], string> = {
   SELLER: 'bg-seller-bg text-seller',
@@ -15,8 +20,17 @@ const ROLE_TONE: Record<Profile['role'], string> = {
   MANAGER: 'bg-manager-bg text-manager',
 }
 
+const ROLE_KEY: Record<Profile['role'], string> = {
+  SELLER: 'role.seller',
+  BUYER: 'role.buyer',
+  MANAGER: 'role.managerShort',
+}
+
 export default async function MessagesPage() {
   const profile = await requireProfile()
+  const t = await getT()
+  // A timestamp is interface, not data: a Ukrainian conversation should not be dated in English.
+  const tag = intlTag(await getLocale())
   const supabase = await createClient()
 
   // No filter on from/to: the RLS policy already limits this to messages the caller is a
@@ -43,7 +57,7 @@ export default async function MessagesPage() {
   const asset = new Map(assets.map((a) => [a.id, a]))
   const name = (id: string) => {
     const p = person.get(id)
-    return p ? (p.company ?? p.full_name) : 'Unknown'
+    return p ? (p.company ?? p.full_name) : t('messages.unknownParty')
   }
 
   const suspended = profile.status === 'SUSPENDED'
@@ -76,17 +90,15 @@ export default async function MessagesPage() {
     <>
       <TopNav profile={profile} />
       <main id="content" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
-        <p className="text-xs text-faint">N5Deal / Messages</p>
+        <p className="text-xs text-faint">{t('messages.crumb')}</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          {profile.role === 'MANAGER' ? 'All contact requests' : 'Your conversations'}
+          {profile.role === 'MANAGER' ? t('messages.titleAll') : t('messages.titleMine')}
         </h1>
         <p className="mb-6 mt-1 text-sm text-muted">
-          {profile.role === 'MANAGER'
-            ? 'Every message exchanged on the platform, newest first.'
-            : 'Everything you have sent and received, grouped by who it is with.'}
+          {profile.role === 'MANAGER' ? t('messages.ledeAll') : t('messages.ledeMine')}
         </p>
 
-        <LoadWarning what="Your messages" error={messagesError} />
+        <LoadWarning what={t('admin.loadMessages')} error={messagesError} />
 
         {profile.role === 'MANAGER' ? (
           <div className="grid gap-3">
@@ -99,7 +111,7 @@ export default async function MessagesPage() {
                       {name(m.from_user_id)} → {name(m.to_user_id)}
                     </span>
                     <span className="font-mono text-faint">
-                      {new Date(m.created_at).toLocaleString('en-GB')}
+                      {new Date(m.created_at).toLocaleString(tag)}
                     </span>
                   </div>
 
@@ -118,7 +130,7 @@ export default async function MessagesPage() {
             })}
             {messages.length === 0 && (
               <p className="rounded-xl border bg-surface px-5 py-8 text-center text-sm text-muted">
-                Nobody has written to anybody yet.
+                {t('messages.noneAll')}
               </p>
             )}
           </div>
@@ -133,11 +145,13 @@ export default async function MessagesPage() {
                     <h2 className="text-sm font-medium">{name(otherId)}</h2>
                     {other && (
                       <span className={`rounded-full px-2 py-0.5 text-[11px] ${tone}`}>
-                        {other.role.toLowerCase()}
+                        {t(ROLE_KEY[other.role])}
                       </span>
                     )}
                     <span className="ml-auto font-mono text-[11px] text-faint">
-                      {thread.length} {thread.length === 1 ? 'message' : 'messages'}
+                      {thread.length === 1
+                        ? t('messages.countOne')
+                        : t('messages.count', { n: thread.length })}
                     </span>
                   </header>
 
@@ -156,10 +170,10 @@ export default async function MessagesPage() {
                         >
                           <div className="mb-1.5 flex flex-wrap items-baseline gap-2">
                             <span className="text-[11px] text-faint">
-                              {outgoing ? 'You' : name(m.from_user_id)}
+                              {outgoing ? t('messages.you') : name(m.from_user_id)}
                             </span>
                             <span className="font-mono text-[11px] text-faint">
-                              {new Date(m.created_at).toLocaleString('en-GB')}
+                              {new Date(m.created_at).toLocaleString(tag)}
                             </span>
                           </div>
 
@@ -197,12 +211,12 @@ export default async function MessagesPage() {
 
             {ordered.length === 0 && (
               <div className="rounded-xl border bg-surface px-5 py-10 text-center">
-                <p className="text-sm text-muted">No conversations yet.</p>
+                <p className="text-sm text-muted">{t('messages.noneMine')}</p>
                 <Link
                   href={profile.role === 'SELLER' ? '/buyers' : '/assets'}
                   className="mt-4 inline-block rounded-full border px-5 py-2 text-sm text-accent-text transition hover:border-accent-text"
                 >
-                  {profile.role === 'SELLER' ? 'Find a buyer' : 'Browse the catalogue'}
+                  {profile.role === 'SELLER' ? t('messages.findBuyer') : t('messages.browse')}
                 </Link>
               </div>
             )}

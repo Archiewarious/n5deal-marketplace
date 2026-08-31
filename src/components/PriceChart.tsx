@@ -1,4 +1,5 @@
 import { formatPriceShort } from '@/lib/format'
+import type { T } from '@/lib/i18n'
 
 /**
  * Where this listing's asking price sits in the market it competes in.
@@ -15,10 +16,12 @@ import { formatPriceShort } from '@/lib/format'
  * listing a buyer can go and open.
  */
 export function PriceChart({
+  t,
   priceCents,
   peersCents,
   label,
 }: {
+  t: T
   priceCents: number
   peersCents: number[]
   /** What the comparison set is — the caller decides whether that is a sector or the catalogue. */
@@ -55,33 +58,33 @@ export function PriceChart({
         <span className="text-sm font-medium">{label}</span>
         <span className="text-xs text-muted">
           {share === 0
-            ? 'the cheapest of them'
+            ? t('chart.cheapest')
             : share === 100
-              ? 'the most expensive of them'
-              : `priced above ${share}% of them`}
+              ? t('chart.dearest')
+              : t('chart.above', { n: share })}
         </span>
       </figcaption>
 
       <div className="flex gap-3">
         <div className="relative h-40 w-14 shrink-0">
-          {ticks.map((t) => (
+          {ticks.map((tick) => (
             <span
-              key={t}
+              key={tick}
               className="absolute right-0 -translate-y-1/2 font-mono text-[10px] text-faint"
-              style={{ bottom: `${height(t)}%` }}
+              style={{ bottom: `${height(tick)}%` }}
             >
-              {formatPriceShort(t)}
+              {formatPriceShort(tick)}
             </span>
           ))}
         </div>
 
         <div className="relative h-40 min-w-0 flex-1">
-          {ticks.map((t) => (
+          {ticks.map((tick) => (
             <span
-              key={t}
+              key={tick}
               aria-hidden
               className="absolute inset-x-0 border-t border-line/70"
-              style={{ bottom: `${height(t)}%` }}
+              style={{ bottom: `${height(tick)}%` }}
             />
           ))}
 
@@ -105,7 +108,7 @@ export function PriceChart({
       </div>
 
       <p className="mt-2 pl-[4.25rem] font-mono text-[10px] text-faint">
-        {peersCents.length} listings, cheapest to dearest
+        {t('chart.axis', { n: peersCents.length })}
       </p>
     </figure>
   )

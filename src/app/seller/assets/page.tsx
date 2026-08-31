@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/session'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { formatPriceShort, formatDate } from '@/lib/format'
+import { getT } from '@/lib/locale'
 import { TopNav } from '@/components/TopNav'
 import { ListingStatusControl } from '@/components/ListingStatusControl'
 import type { Asset } from '@/lib/types'
@@ -10,7 +11,10 @@ import { LoadWarning } from '@/components/LoadWarning'
 import { StatStrip } from '@/components/StatStrip'
 import { CountryTag } from '@/components/CountryTag'
 
-export const metadata = { title: 'My listings' }
+export async function generateMetadata() {
+  const t = await getT()
+  return { title: t('nav.myListings') }
+}
 
 const STATE_STYLE: Record<Asset['status'], string> = {
   PUBLISHED: 'text-ok bg-ok-bg',
@@ -19,8 +23,16 @@ const STATE_STYLE: Record<Asset['status'], string> = {
   REMOVED: 'text-danger bg-danger-bg',
 }
 
+const STATE_KEY: Record<Asset['status'], string> = {
+  PUBLISHED: 'state.published',
+  DRAFT: 'state.draft',
+  SUSPENDED: 'state.suspended',
+  REMOVED: 'state.removed',
+}
+
 export default async function SellerAssetsPage() {
   const profile = await requireRole('SELLER')
+  const t = await getT()
   const supabase = await createClient()
 
   // No seller_id filter needed — the RLS policy already restricts this to own rows.
@@ -40,17 +52,17 @@ export default async function SellerAssetsPage() {
       <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs text-faint">N5Deal / My listings</p>
-            <h1 className="text-2xl font-semibold tracking-tight">Listings you published</h1>
+            <p className="text-xs text-faint">{t('seller.crumb')}</p>
+            <h1 className="text-2xl font-semibold tracking-tight">{t('seller.title')}</h1>
             <p className="mt-1 text-sm text-muted">
-              Drafts stay private until you publish them.
+              {t('seller.lede')}
             </p>
           </div>
           <Link
             href="/seller/assets/new"
             className="shrink-0 rounded-full bg-accent px-5 py-2 text-sm font-medium text-accent-fg transition hover:opacity-90"
           >
-            Publish an asset
+            {t('seller.publish')}
           </Link>
         </div>
 
@@ -59,20 +71,23 @@ export default async function SellerAssetsPage() {
         <StatStrip
           stats={[
             {
-              label: 'Live',
-              value: `${assets.filter((a) => a.status === 'PUBLISHED').length} of ${assets.length}`,
+              label: t('seller.live'),
+              value: t('admin.ofTotal', {
+                shown: assets.filter((a) => a.status === 'PUBLISHED').length,
+                total: assets.length,
+              }),
               tone: 'text-ok',
             },
             {
-              label: 'In draft',
+              label: t('seller.inDraft'),
               value: String(assets.filter((a) => a.status === 'DRAFT').length),
             },
             {
-              label: 'Views',
+              label: t('seller.viewsStat'),
               value: String(assets.reduce((sum, a) => sum + a.views, 0)),
             },
             {
-              label: 'Value listed',
+              label: t('seller.valueListed'),
               value: formatPriceShort(
                 assets
                   .filter((a) => a.status === 'PUBLISHED')
@@ -83,17 +98,17 @@ export default async function SellerAssetsPage() {
           ]}
         />
 
-        <LoadWarning what="Your listings" error={assetsError} />
+        <LoadWarning what={t('admin.loadYourListings')} error={assetsError} />
 
         <div className="overflow-x-auto rounded-xl border bg-surface">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-[10px] uppercase tracking-wider text-faint">
-                <th className="px-4 py-3 font-normal">Asset</th>
-                <th className="px-4 py-3 font-normal">Jurisdiction</th>
-                <th className="px-4 py-3 font-normal">Price</th>
-                <th className="px-4 py-3 font-normal">Views</th>
-                <th className="px-4 py-3 font-normal">Status</th>
+                <th className="px-4 py-3 font-normal">{t('seller.colAsset')}</th>
+                <th className="px-4 py-3 font-normal">{t('seller.colJurisdiction')}</th>
+                <th className="px-4 py-3 font-normal">{t('seller.colPrice')}</th>
+                <th className="px-4 py-3 font-normal">{t('seller.colViews')}</th>
+                <th className="px-4 py-3 font-normal">{t('seller.colStatus')}</th>
                 <th className="px-4 py-3 font-normal" />
               </tr>
             </thead>
@@ -120,7 +135,7 @@ export default async function SellerAssetsPage() {
                   <td className="px-4 py-3 text-muted">{a.views}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-[10px] ${STATE_STYLE[a.status]}`}>
-                      {a.status.toLowerCase()}
+                      {t(STATE_KEY[a.status])}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -129,7 +144,7 @@ export default async function SellerAssetsPage() {
                         href={`/seller/assets/${a.id}/edit`}
                         className="rounded-full border px-3 py-1 text-xs text-muted transition hover:border-accent-text hover:text-accent-text"
                       >
-                        Edit
+                        {t('seller.edit')}
                       </Link>
                       <ListingStatusControl assetId={a.id} status={a.status} owner />
                     </span>
@@ -139,7 +154,7 @@ export default async function SellerAssetsPage() {
               {assets.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-10 text-center text-muted">
-                    Nothing published yet.
+                    {t('seller.none')}
                   </td>
                 </tr>
               )}

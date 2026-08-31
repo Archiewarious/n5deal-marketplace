@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { useT } from '@/components/LocaleProvider'
 
 export function BuyerFilters({
   sectors,
@@ -10,6 +11,7 @@ export function BuyerFilters({
   sectors: string[]
   jurisdictions: string[]
 }) {
+  const t = useT()
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -40,9 +42,9 @@ export function BuyerFilters({
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search buyers"
+          placeholder={t('buyers.searchBuyers')}
           className="min-w-48 flex-1 rounded-full border bg-field px-4 py-2 text-sm"
-          aria-label="Search buyers"
+          aria-label={t('buyers.searchBuyers')}
         />
       </form>
 
@@ -50,9 +52,9 @@ export function BuyerFilters({
         value={params.get('sector') ?? ''}
         onChange={(e) => apply({ sector: e.target.value })}
         className="rounded-lg border bg-field px-3 py-2 text-sm"
-        aria-label="Sector of interest"
+        aria-label={t('buyers.sectorOfInterest')}
       >
-        <option value="">Any sector</option>
+        <option value="">{t('buyers.anySector')}</option>
         {sectors.map((s) => (
           <option key={s} value={s}>
             {s}
@@ -64,9 +66,9 @@ export function BuyerFilters({
         value={params.get('jurisdiction') ?? ''}
         onChange={(e) => apply({ jurisdiction: e.target.value })}
         className="rounded-lg border bg-field px-3 py-2 text-sm"
-        aria-label="Jurisdiction of interest"
+        aria-label={t('buyers.jurisdictionOfInterest')}
       >
-        <option value="">Any jurisdiction</option>
+        <option value="">{t('filters.anyJurisdiction')}</option>
         {jurisdictions.map((j) => (
           <option key={j} value={j}>
             {j}
@@ -79,7 +81,7 @@ export function BuyerFilters({
           onClick={() => router.push(pathname)}
           className="rounded-lg px-3 py-2 text-sm text-faint transition hover:text-fg"
         >
-          Reset
+          {t('filters.reset')}
         </button>
       )}
     </div>

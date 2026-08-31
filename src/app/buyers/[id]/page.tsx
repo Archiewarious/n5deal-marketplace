@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/session'
+import { getT } from '@/lib/locale'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { matchAssetToBuyer } from '@/lib/matching'
 import { formatPriceShort } from '@/lib/format'
@@ -11,17 +12,19 @@ import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const t = await getT()
   const supabase = await createClient()
   const { data } = await supabase
     .from('profiles')
     .select('company, full_name')
     .eq('id', id)
     .maybeSingle<{ company: string | null; full_name: string }>()
-  return { title: data ? (data.company ?? data.full_name) : 'Buyer' }
+  return { title: data ? (data.company ?? data.full_name) : t('meta.buyer') }
 }
 
 export default async function BuyerPage({ params }: { params: Promise<{ id: string }> }) {
   const profile = await requireRole('SELLER', 'MANAGER')
+  const t = await getT()
   const { id } = await params
   const supabase = await createClient()
 
@@ -61,7 +64,7 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
       <TopNav profile={profile} />
       <main id="content" className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">
         <Link href="/buyers" className="text-xs text-faint transition hover:text-fg">
-          ← All buyers
+          ← {t('buyers.allBuyers')}
         </Link>
 
         <div className="mt-4 mb-6">
@@ -70,7 +73,7 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
             {person.full_name}
             {person.status === 'SUSPENDED' && (
               <span className="ml-2 rounded-full bg-danger-bg px-2 py-0.5 text-[10px] text-danger">
-                suspended
+                {t('nav.suspended')}
               </span>
             )}
           </p>
@@ -84,7 +87,9 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
             )}
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
-                <p className="mb-1 text-[10px] uppercase tracking-wider text-faint">Sectors</p>
+                <p className="mb-1 text-[10px] uppercase tracking-wider text-faint">
+                  {t('mandate.sectors')}
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {mandate.sectors.map((s) => (
                     <span key={s} className="rounded-full border px-2.5 py-1 text-xs">
@@ -95,7 +100,7 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
               </div>
               <div>
                 <p className="mb-1 text-[10px] uppercase tracking-wider text-faint">
-                  Jurisdictions
+                  {t('mandate.jurisdictions')}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {mandate.jurisdictions.map((j) => (
@@ -106,7 +111,9 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
                 </div>
               </div>
               <div>
-                <p className="mb-1 text-[10px] uppercase tracking-wider text-faint">Ticket</p>
+                <p className="mb-1 text-[10px] uppercase tracking-wider text-faint">
+                  {t('buyers.ticket')}
+                </p>
                 <p className="text-sm">
                   {mandate.ticket_min_eur !== null && `€${mandate.ticket_min_eur.toLocaleString()}`}
                   {mandate.ticket_min_eur !== null && mandate.ticket_max_eur !== null && ' – '}
@@ -117,13 +124,13 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
           </section>
         ) : (
           <p className="mb-6 rounded-xl border bg-surface px-5 py-6 text-sm text-muted">
-            This buyer has not described a mandate yet.
+            {t('buyers.noMandateYet')}
           </p>
         )}
 
         {suggestions.length > 0 && (
           <section className="mb-6 rounded-xl border bg-surface p-5">
-            <h2 className="mb-3 text-sm font-medium">Your listings this buyer may want</h2>
+            <h2 className="mb-3 text-sm font-medium">{t('buyers.suggestions')}</h2>
             <ul className="grid gap-2">
               {suggestions.map(({ asset, score }) => (
                 <li key={asset.id} className="flex items-center justify-between gap-3">

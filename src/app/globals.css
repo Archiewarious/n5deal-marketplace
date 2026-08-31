@@ -29,6 +29,16 @@
   --color-buyer-bg: var(--buyer-bg);
   --color-manager: var(--manager);
   --color-manager-bg: var(--manager-bg);
+  --color-bank: var(--bank);
+  --color-bank-bg: var(--bank-bg);
+  --color-fintech: var(--fintech);
+  --color-fintech-bg: var(--fintech-bg);
+  --color-payment: var(--payment);
+  --color-payment-bg: var(--payment-bg);
+  --color-emi: var(--emi);
+  --color-emi-bg: var(--emi-bg);
+  --color-crypto: var(--crypto);
+  --color-crypto-bg: var(--crypto-bg);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-plex), ui-monospace, "SFMono-Regular", "Cascadia Mono", monospace;
 }
@@ -83,6 +93,25 @@
   --manager: #6b3fa0;
   --manager-bg: rgba(107, 63, 160, 0.09);
 
+
+  /* The five categories the whole business is organised by, given five hues.
+     This is the one place colour is allowed to multiply, and it earns it: a buyer scanning
+     twenty-nine cards is looking for a category before anything else, and a chip they can find
+     by colour is faster than a word they have to read. Institutional navy for a bank, teal for
+     fintech, gold for payments, violet for e-money, green for crypto. Each is measured against
+     its own ground; the light set is dark enough to carry 10px text on white, the dark set light
+     enough to carry it on charcoal. */
+  /* 10.0:1 */ --bank: #1d3f6b;
+  --bank-bg: rgba(29, 63, 107, 0.09);
+  /* 5.5:1 */ --fintech: #0f6f70;
+  --fintech-bg: rgba(15, 111, 112, 0.1);
+  /* 5.4:1 */ --payment: #8a5a12;
+  --payment-bg: rgba(138, 90, 18, 0.1);
+  /* 6.8:1 */ --emi: #6b3fa0;
+  --emi-bg: rgba(107, 63, 160, 0.09);
+  /* 4.9:1 */ --crypto: #0e7a52;
+  --crypto-bg: rgba(14, 122, 82, 0.1);
+
   /* The wash behind a hero. Named here because it has to change with the ground, and an
      inline style in a component cannot. */
   --wash: radial-gradient(1100px 560px at 18% -14%, rgba(29, 63, 107, 0.1), transparent 64%);
@@ -124,6 +153,16 @@
     --buyer-bg: rgba(127, 168, 216, 0.14);
     --manager: #a898dd;
     --manager-bg: rgba(168, 152, 221, 0.14);
+    --bank: #7fa8d8;
+    --bank-bg: rgba(127, 168, 216, 0.13);
+    --fintech: #4fbdbe;
+    --fintech-bg: rgba(79, 189, 190, 0.13);
+    --payment: #d9a441;
+    --payment-bg: rgba(217, 164, 65, 0.13);
+    --emi: #a898dd;
+    --emi-bg: rgba(168, 152, 221, 0.13);
+    --crypto: #56b98c;
+    --crypto-bg: rgba(86, 185, 140, 0.13);
     --wash: radial-gradient(1100px 560px at 18% -14%, rgba(45, 86, 140, 0.26), transparent 64%);
   }
 }
@@ -153,6 +192,16 @@
   --buyer-bg: rgba(127, 168, 216, 0.14);
   --manager: #a898dd;
   --manager-bg: rgba(168, 152, 221, 0.14);
+  --bank: #7fa8d8;
+  --bank-bg: rgba(127, 168, 216, 0.13);
+  --fintech: #4fbdbe;
+  --fintech-bg: rgba(79, 189, 190, 0.13);
+  --payment: #d9a441;
+  --payment-bg: rgba(217, 164, 65, 0.13);
+  --emi: #a898dd;
+  --emi-bg: rgba(168, 152, 221, 0.13);
+  --crypto: #56b98c;
+  --crypto-bg: rgba(86, 185, 140, 0.13);
   --wash: radial-gradient(1100px 560px at 18% -14%, rgba(45, 86, 140, 0.26), transparent 64%);
 }
 
@@ -173,9 +222,48 @@
   animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Scroll choreography. A section that assembles as it arrives reads as a page being laid out
+   rather than one that was already there; the transform is applied by a class the observer
+   adds, so a visitor with JavaScript off sees everything at once instead of nothing at all. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Chart bars grow out of the axis. The delay is set per bar inline, so the distribution draws
+   itself left to right and a reader's eye follows the shape instead of arriving at it. */
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.grow {
+  transform-origin: bottom;
+  animation: grow 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .rise {
+  .rise,
+  .grow {
     animation: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
   *,
   *::before,

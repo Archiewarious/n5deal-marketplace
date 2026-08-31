@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { useT } from '@/components/LocaleProvider'
 import { SECTORS } from '@/lib/types'
 
 // Filter state lives in the URL, not in React state. That makes every filtered view
@@ -20,6 +21,7 @@ export function AssetFilters({
   /** Whether a key is configured. Without one the box is the deterministic parser, unchanged. */
   aiAvailable?: boolean
 }) {
+  const t = useT()
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -92,17 +94,17 @@ export function AssetFilters({
           onChange={(e) => setQ(e.target.value)}
           placeholder={
             aiAvailable
-              ? 'Try: a dormant crypto shell in eastern Europe under 250k'
-              : 'Try: crypto licence in Poland under 500k'
+              ? t('filters.searchPlaceholderAi')
+              : t('filters.searchPlaceholder')
           }
           className="flex-1 rounded-full border bg-field px-4 py-2 text-sm"
-          aria-label="Search assets"
+          aria-label={t('filters.searchAssets')}
         />
         <button
           disabled={reading}
           className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-accent-fg transition hover:opacity-90 disabled:opacity-60"
         >
-          {reading ? 'Reading…' : 'Search'}
+          {reading ? t('filters.reading') : t('filters.search')}
         </button>
       </form>
 
@@ -113,7 +115,7 @@ export function AssetFilters({
             !activeSector ? 'border-accent-text text-accent-text' : 'text-muted hover:text-fg'
           }`}
         >
-          All ({total})
+          {t('filters.all')} ({total})
         </button>
         {SECTORS.map((s) => (
           <button
@@ -133,9 +135,9 @@ export function AssetFilters({
           value={params.get('country') ?? ''}
           onChange={(e) => apply({ country: e.target.value })}
           className="rounded-lg border bg-field px-3 py-1.5 text-sm"
-          aria-label="Jurisdiction"
+          aria-label={t('filters.jurisdiction')}
         >
-          <option value="">Any jurisdiction</option>
+          <option value="">{t('filters.anyJurisdiction')}</option>
           {countries.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -147,11 +149,11 @@ export function AssetFilters({
           value={params.get('kind') ?? ''}
           onChange={(e) => apply({ kind: e.target.value })}
           className="rounded-lg border bg-field px-3 py-1.5 text-sm"
-          aria-label="Asset type"
+          aria-label={t('filters.assetType')}
         >
-          <option value="">Any asset type</option>
-          <option value="LICENSE_ONLY">Licence only</option>
-          <option value="ACTIVE_BUSINESS">Active business</option>
+          <option value="">{t('filters.anyAssetType')}</option>
+          <option value="LICENSE_ONLY">{t('filters.licenceOnly')}</option>
+          <option value="ACTIVE_BUSINESS">{t('filters.activeBusiness')}</option>
         </select>
 
         <input
@@ -167,24 +169,26 @@ export function AssetFilters({
               apply({ max: e.currentTarget.value })
             }
           }}
-          placeholder="Max price, e.g. 2.5M"
+          placeholder={t('filters.maxPrice')}
           className="w-40 rounded-lg border bg-field px-3 py-1.5 text-sm"
-          aria-label="Maximum price"
+          aria-label={t('filters.maximumPrice')}
         />
 
         <select
           value={params.get('sort') ?? ''}
           onChange={(e) => apply({ sort: e.target.value })}
           className="rounded-lg border bg-field px-3 py-1.5 text-sm"
-          aria-label="Sort order"
+          aria-label={t('filters.sortOrder')}
         >
           {/* A buyer's default is their mandate; everyone else's is newest first. Saying so in
               the empty option means the select never reads as unset when it is doing something. */}
-          <option value="">{canSortByFit ? 'Best fit with my mandate' : 'Newest first'}</option>
-          {canSortByFit && <option value="new">Newest first</option>}
-          <option value="price-desc">Price, high to low</option>
-          <option value="price-asc">Price, low to high</option>
-          <option value="views">Most viewed</option>
+          <option value="">
+            {canSortByFit ? t('filters.bestFit') : t('filters.newestFirst')}
+          </option>
+          {canSortByFit && <option value="new">{t('filters.newestFirst')}</option>}
+          <option value="price-desc">{t('filters.priceDesc')}</option>
+          <option value="price-asc">{t('filters.priceAsc')}</option>
+          <option value="views">{t('filters.mostViewed')}</option>
         </select>
 
         {[...params.keys()].length > 0 && (
@@ -192,7 +196,7 @@ export function AssetFilters({
             onClick={() => router.push(pathname)}
             className="rounded-lg px-3 py-1.5 text-sm text-faint transition hover:text-fg"
           >
-            Reset
+            {t('filters.reset')}
           </button>
         )}
       </div>

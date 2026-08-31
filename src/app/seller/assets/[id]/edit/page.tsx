@@ -5,21 +5,24 @@ import { requireRole } from '@/lib/session'
 import { TopNav } from '@/components/TopNav'
 import { AssetForm } from '@/components/AssetForm'
 import { aiEnabled } from '@/lib/ai'
+import { getT } from '@/lib/locale'
 import type { Asset } from '@/lib/types'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const t = await getT()
   const supabase = await createClient()
   const { data } = await supabase
     .from('assets')
     .select('title')
     .eq('id', id)
     .maybeSingle<{ title: string }>()
-  return { title: data ? `Edit ${data.title}` : 'Edit listing' }
+  return { title: data ? t('meta.edit', { title: data.title }) : t('meta.editListing') }
 }
 
 export default async function EditAssetPage({ params }: { params: Promise<{ id: string }> }) {
   const profile = await requireRole('SELLER')
+  const t = await getT()
   const { id } = await params
   const supabase = await createClient()
 
@@ -43,28 +46,27 @@ export default async function EditAssetPage({ params }: { params: Promise<{ id: 
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         <p className="text-xs text-faint">
           <Link href="/seller/assets" className="transition hover:text-fg">
-            N5Deal / My listings
+            {t('seller.crumb')}
           </Link>{' '}
-          / Edit
+          / {t('seller.editCrumb')}
         </p>
         <h1 className="mb-1 mt-1 text-2xl font-semibold tracking-tight">{asset.title}</h1>
         <p className="mb-6 text-sm text-muted">
-          Changes go live immediately for a published listing. The preview beside the form is the
-          card a buyer sees.
+          {t('form.editLede')}
         </p>
 
         {profile.status === 'SUSPENDED' ? (
           <p className="rounded-xl border border-warn bg-warn-bg px-5 py-4 text-sm text-warn">
-            Your account is suspended, so this listing cannot be edited. Contact the platform
-            manager to restore access.
+            {t('form.suspendedEdit')}
           </p>
         ) : moderated ? (
           // A manager put this listing in a moderated state, and the assets_guard trigger pins
           // it there. Editing the fields would work; changing the publish state would silently
           // not. Say so rather than offer a control that gets reverted by the database.
           <p className="rounded-xl border border-warn bg-warn-bg px-5 py-4 text-sm text-warn">
-            A platform manager has {asset.status === 'SUSPENDED' ? 'suspended' : 'removed'} this
-            listing. Only they can put it back on the market.
+            {t('form.moderated', {
+              state: t(asset.status === 'SUSPENDED' ? 'state.suspendedVerb' : 'state.removedVerb'),
+            })}
           </p>
         ) : (
           <AssetForm sellerId={profile.id} asset={asset} aiAvailable={aiEnabled()} />

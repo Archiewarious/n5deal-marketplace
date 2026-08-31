@@ -4,9 +4,11 @@ import { formatPriceFull } from '@/lib/format'
 import { CountryTag } from '@/components/CountryTag'
 import { RoleCards } from '@/components/RoleCards'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { getT } from '@/lib/locale'
 
-export const metadata = {
-  title: 'Licensed financial assets, sold with the paperwork attached',
+export async function generateMetadata() {
+  const t = await getT()
+  return { title: t('meta.home') }
 }
 
 type Stats = {
@@ -24,6 +26,7 @@ export default async function Home() {
   // it stay closed, because the audit found the participant directory readable by anyone holding
   // the publishable key. If the function is not deployed the page still renders; the register
   // simply has nothing to count, which is better than a crash on the front page.
+  const t = await getT()
   const supabase = await createClient()
   const { data } = await supabase.rpc('platform_stats')
   const stats = (data as Stats | null) ?? null
@@ -50,24 +53,23 @@ export default async function Home() {
           </div>
           <p className="rise flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-faint">
             <span className="size-1.5 rounded-full bg-seller" />
-            Licence register
+            {t('home.eyebrow')}
           </p>
 
           <h1
             className="rise mt-5 max-w-4xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
             style={{ animationDelay: '60ms' }}
           >
-            Banking and fintech businesses,
-            <br className="hidden sm:block" /> sold with the{' '}
-            <span className="text-accent-text">licence attached</span>.
+            {t('home.h1a')}
+            <br className="hidden sm:block" /> {t('home.h1b')}{' '}
+            <span className="text-accent-text">{t('home.h1accent')}</span>.
           </h1>
 
           <p
             className="rise mt-6 max-w-2xl text-lg leading-relaxed text-muted"
             style={{ animationDelay: '120ms' }}
           >
-            Buyers state a mandate once. Sellers list an entity. The catalogue ranks one against
-            the other, so nobody reads every listing to find the three that fit.
+            {t('home.lede')}
           </p>
 
           <div
@@ -78,13 +80,13 @@ export default async function Home() {
               href="/login"
               className="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-fg transition hover:opacity-90"
             >
-              Enter the demo
+              {t('home.enter')}
             </Link>
             <a
               href="https://github.com/Archiewarious/n5deal-marketplace"
               className="rounded-full border px-6 py-2.5 text-sm text-muted transition hover:text-fg"
             >
-              Read the source
+              {t('home.source')}
             </a>
           </div>
 
@@ -97,20 +99,20 @@ export default async function Home() {
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2 border-b px-5 py-3">
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-faint">
-                  On the platform now
+                  {t('home.registerTitle')}
                 </p>
-                <p className="font-mono text-[11px] text-faint">counted on every read</p>
+                <p className="font-mono text-[11px] text-faint">{t('home.registerNote')}</p>
               </div>
 
               <dl className="grid grid-cols-2 sm:grid-cols-4">
                 {[
-                  { k: 'Listings', v: String(stats.listings) },
-                  { k: 'Jurisdictions', v: String(stats.jurisdictions) },
-                  { k: 'Participants', v: String(stats.participants) },
-                  { k: 'Value listed', v: formatPriceFull(stats.value_cents) },
+                  { k: 'home.listings', v: String(stats.listings) },
+                  { k: 'home.jurisdictions', v: String(stats.jurisdictions) },
+                  { k: 'home.participants', v: String(stats.participants) },
+                  { k: 'home.valueListed', v: formatPriceFull(stats.value_cents) },
                 ].map((s) => (
                   <div key={s.k} className="border-b px-5 py-4 sm:border-b-0 sm:not-first:border-l">
-                    <dt className="text-[10px] uppercase tracking-wider text-faint">{s.k}</dt>
+                    <dt className="text-[10px] uppercase tracking-wider text-faint">{t(s.k)}</dt>
                     <dd className="mt-1 font-mono text-2xl font-medium tabular-nums">{s.v}</dd>
                   </div>
                 ))}
@@ -134,16 +136,15 @@ export default async function Home() {
         <section className="border-b px-4 py-16 sm:px-6">
           <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">What is on the shelf</h2>
+              <h2 className="text-2xl font-semibold tracking-tight">{t('home.shelfTitle')}</h2>
               <p className="mt-3 max-w-md leading-relaxed text-muted">
-                Five categories, from a dormant VASP to a bank at eight figures. The split beside
-                this is the live count per category, not an illustration.
+                {t('home.shelfBody')}
               </p>
               <Link
                 href="/login"
                 className="mt-6 inline-flex items-center gap-1.5 text-sm text-accent-text transition-all hover:gap-2.5"
               >
-                Browse the catalogue <span aria-hidden>→</span>
+                {t('home.browse')} <span aria-hidden>→</span>
               </Link>
             </div>
 
@@ -171,45 +172,44 @@ export default async function Home() {
       <section className="border-b px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-2xl font-semibold tracking-tight">
-            Three sides, three different screens
+            {t('home.sidesTitle')}
           </h2>
           <p className="mt-3 max-w-2xl leading-relaxed text-muted">
-            The same catalogue looks different depending on who is holding it, and not as a matter
-            of styling: each role reaches a different set of rows.
+            {t('home.sidesBody')}
           </p>
 
           <div className="mt-8 grid gap-px overflow-hidden rounded-2xl border bg-line md:grid-cols-3">
             {[
               {
                 tone: 'text-seller',
-                title: 'A seller',
-                sees: 'Their own listings including drafts, plus every published listing.',
-                does: 'Publishes an entity, reads what buyers are looking for, writes to one directly.',
+                title: 'role.seller',
+                sees: 'home.sellerSees',
+                does: 'home.sellerDoes',
               },
               {
                 tone: 'text-buyer',
-                title: 'A buyer',
-                sees: 'Published listings only, ordered by how well each fits their mandate.',
-                does: 'States a mandate once, then lets the catalogue do the shortlisting.',
+                title: 'role.buyer',
+                sees: 'home.buyerSees',
+                does: 'home.buyerDoes',
               },
               {
                 tone: 'text-manager',
-                title: 'A platform manager',
-                sees: 'Everything. Drafts, removed listings, every participant, every message.',
-                does: 'Suspends an account or takes a listing down, and both take effect in the database.',
+                title: 'role.manager',
+                sees: 'home.managerSees',
+                does: 'home.managerDoes',
               },
             ].map((c) => (
               <div key={c.title} className="bg-surface p-6">
                 <p className={`font-mono text-xs uppercase tracking-[0.16em] ${c.tone}`}>
-                  {c.title}
+                  {t(c.title)}
                 </p>
                 <p className="mt-4 text-sm leading-relaxed">
-                  <span className="text-faint">Sees </span>
-                  <span className="text-muted">{c.sees}</span>
+                  <span className="text-faint">{t('home.sees')} </span>
+                  <span className="text-muted">{t(c.sees)}</span>
                 </p>
                 <p className="mt-2 text-sm leading-relaxed">
-                  <span className="text-faint">Does </span>
-                  <span className="text-muted">{c.does}</span>
+                  <span className="text-faint">{t('home.does')} </span>
+                  <span className="text-muted">{t(c.does)}</span>
                 </p>
               </div>
             ))}
@@ -222,39 +222,34 @@ export default async function Home() {
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              The rules live in the database
+              {t('home.rulesTitle')}
             </h2>
             <p className="mt-3 leading-relaxed text-muted">
-              Not in a route guard, and not in a hidden button. Every read and every write goes
-              through row level security in Postgres, so a request that skips this interface
-              entirely gets the same answer.
+              {t('home.rulesBody1')}
             </p>
             <p className="mt-3 leading-relaxed text-muted">
-              That claim was tested rather than asserted. Attacking the first version of the
-              policies found six holes, one of which let any account promote itself to platform
-              manager, because RLS restricts rows and never columns. All six are written up with
-              the request that proved each one.
+              {t('home.rulesBody2')}
             </p>
             <a
               href="https://github.com/Archiewarious/n5deal-marketplace/blob/master/supabase/SECURITY.md"
               className="mt-6 inline-flex items-center gap-1.5 text-sm text-accent-text transition-all hover:gap-2.5"
             >
-              Read the audit <span aria-hidden>→</span>
+              {t('home.readAudit')} <span aria-hidden>→</span>
             </a>
           </div>
 
           <ul className="grid gap-px overflow-hidden rounded-2xl border bg-line">
             {[
-              ['Suspended account', 'sees zero rows, and cannot write one'],
-              ['Suspended seller', 'their live listings leave the catalogue with them'],
-              ['Suspended manager', 'loses the console; holding the role is not enough'],
-              ['Any account', 'cannot rewrite its own role or status'],
-              ['Any seller', 'cannot award itself the validated badge'],
-              ['Buyer mandates', 'visible to sellers and managers, nobody else'],
+              ['home.rule1who', 'home.rule1what'],
+              ['home.rule2who', 'home.rule2what'],
+              ['home.rule3who', 'home.rule3what'],
+              ['home.rule4who', 'home.rule4what'],
+              ['home.rule5who', 'home.rule5what'],
+              ['home.rule6who', 'home.rule6what'],
             ].map(([who, what]) => (
               <li key={who} className="flex flex-wrap gap-x-2 bg-surface px-5 py-3.5 text-sm">
-                <span className="font-mono text-faint">{who}</span>
-                <span className="text-muted">{what}</span>
+                <span className="font-mono text-faint">{t(who)}</span>
+                <span className="text-muted">{t(what)}</span>
               </li>
             ))}
           </ul>
@@ -266,21 +261,21 @@ export default async function Home() {
         <div className="mx-auto max-w-5xl">
           <div className="mb-9 text-center">
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Pick the side you are on
+              {t('home.pickTitle')}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-muted">
-              Three seeded accounts, no sign-up. Each one drops you straight into that role.
+              {t('home.pickBody')}
             </p>
           </div>
 
           <RoleCards showExtras={false} />
 
           <p className="mt-8 text-center text-sm text-muted">
-            There is a fourth account, suspended, on the{' '}
+            {t('home.fourth')}{' '}
             <Link href="/login" className="text-accent-text hover:underline">
-              role picker
+              {t('home.rolePicker')}
             </Link>{' '}
-            — worth a click if you want to see what a blocked participant gets.
+            — {t('home.fourthTail')}
           </p>
         </div>
       </section>

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/components/LocaleProvider'
 import type { ListingState } from '@/lib/types'
 
 // One control, two callers. A seller may move their own listing between draft and
@@ -10,21 +11,29 @@ import type { ListingState } from '@/lib/types'
 // and RLS decides which of the two policies lets it through — the component does not
 // need to know, and cannot grant itself more than the database allows.
 
-type Option = { to: ListingState; label: string; tone?: 'danger' | 'warn'; confirm?: string }
+type Option = {
+  to: ListingState
+  labelKey: string
+  tone?: 'danger' | 'warn'
+  confirmKey?: string
+  confirmYesKey?: string
+}
 
 const SUSPEND: Option = {
   to: 'SUSPENDED',
-  label: 'Suspend',
+  labelKey: 'status.suspend',
   tone: 'warn',
-  confirm: 'Hide this listing from every buyer?',
+  confirmKey: 'status.confirmSuspendListing',
+  confirmYesKey: 'status.yesSuspend',
 }
 const REMOVE: Option = {
   to: 'REMOVED',
-  label: 'Remove',
+  labelKey: 'status.remove',
   tone: 'danger',
-  confirm: 'Remove this listing from the platform?',
+  confirmKey: 'status.confirmRemove',
+  confirmYesKey: 'status.yesRemove',
 }
-const RESTORE: Option = { to: 'PUBLISHED', label: 'Restore' }
+const RESTORE: Option = { to: 'PUBLISHED', labelKey: 'status.restore' }
 
 // Written out per state rather than as a chain of ternaries, because the chain had a hole in
 // it: REMOVED fell into the default branch and was offered Suspend and Remove again, so a
@@ -46,6 +55,7 @@ export function ListingStatusControl({
   status: ListingState
   owner?: boolean
 }) {
+  const t = useT()
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,9 +66,9 @@ export function ListingStatusControl({
 
   const options: Option[] = owner
     ? status === 'PUBLISHED'
-      ? [{ to: 'DRAFT', label: 'Unpublish' }]
+      ? [{ to: 'DRAFT', labelKey: 'status.unpublish' }]
       : status === 'DRAFT'
-        ? [{ to: 'PUBLISHED', label: 'Publish' }]
+        ? [{ to: 'PUBLISHED', labelKey: 'status.publish' }]
         : []
     : MANAGER_OPTIONS[status]
 
@@ -81,20 +91,22 @@ export function ListingStatusControl({
   if (pending) {
     return (
       <span className="inline-flex items-center gap-2 whitespace-nowrap">
-        <span className="text-xs text-muted">{pending.confirm}</span>
+        <span className="text-xs text-muted">
+          {pending.confirmKey && t(pending.confirmKey)}
+        </span>
         <button
           onClick={() => move(pending.to)}
           disabled={busy}
           autoFocus
           className="rounded-full border border-danger px-3 py-1 text-xs text-danger transition hover:bg-danger-bg disabled:opacity-50"
         >
-          Yes, {pending.label.toLowerCase()}
+          {pending.confirmYesKey && t(pending.confirmYesKey)}
         </button>
         <button
           onClick={() => setPending(null)}
           className="rounded-full border px-3 py-1 text-xs text-muted transition hover:text-fg"
         >
-          Cancel
+          {t('status.cancel')}
         </button>
       </span>
     )
@@ -109,8 +121,8 @@ export function ListingStatusControl({
       )}
       {options.map((o) => (
         <button
-          key={o.to + o.label}
-          onClick={() => (o.confirm ? setPending(o) : move(o.to))}
+          key={o.to + o.labelKey}
+          onClick={() => (o.confirmKey ? setPending(o) : move(o.to))}
           disabled={busy}
           className={`rounded-full border px-3 py-1 text-xs transition disabled:opacity-50 ${
             o.tone === 'danger'
@@ -120,7 +132,7 @@ export function ListingStatusControl({
                 : 'text-muted hover:border-accent-text hover:text-accent-text'
           }`}
         >
-          {o.label}
+          {t(o.labelKey)}
         </button>
       ))}
     </span>

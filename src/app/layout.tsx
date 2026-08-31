@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { SiteFooter } from '@/components/SiteFooter'
+import { LocaleProvider } from '@/components/LocaleProvider'
+import { getLocale, getT } from '@/lib/locale'
 
 const inter = Inter({ variable: '--font-inter', subsets: ['latin'] })
 
@@ -34,9 +36,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default async function RootLayout({ children }: LayoutProps<'/'>) {
+  const locale = await getLocale()
+  const t = await getT()
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable} h-full`} suppressHydrationWarning>
+    <html lang={locale} className={`${inter.variable} ${mono.variable} h-full`} suppressHydrationWarning>
       <head>
         {/* Runs before first paint, which is the whole point: read once from the browser and
             stamp the root element, so a visitor who chose dark never sees the light page flash
@@ -55,10 +59,12 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           href="#content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:text-accent-fg"
         >
-          Skip to content
+          {t('skip.toContent')}
         </a>
-        {children}
-        <SiteFooter />
+        <LocaleProvider locale={locale}>
+          {children}
+          <SiteFooter />
+        </LocaleProvider>
       </body>
     </html>
   )

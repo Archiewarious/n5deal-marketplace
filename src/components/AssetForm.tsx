@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { parsePriceToCents, formatPriceFull } from '@/lib/format'
 import { SECTORS } from '@/lib/types'
 import { AssetCard } from '@/components/AssetCard'
+import { useT } from '@/components/LocaleProvider'
 import type { Asset } from '@/lib/types'
 
 // One form, two jobs: publishing a listing and correcting one.
@@ -113,6 +114,7 @@ export function AssetForm({
   asset?: Asset
   aiAvailable?: boolean
 }) {
+  const t = useT()
   const router = useRouter()
   const [v, setV] = useState<Values>(asset ? fromAsset(asset) : BLANK)
   const [busy, setBusy] = useState(false)
@@ -158,7 +160,7 @@ export function AssetForm({
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (priceCents === null) {
-      setError('The asking price could not be read. Try 2.5M, 400K or 40000.')
+      setError(t('form.priceError'))
       return
     }
     setBusy(true)
@@ -211,9 +213,9 @@ export function AssetForm({
     id: asset?.id ?? 'preview',
     seller_id: sellerId,
     public_id: asset?.public_id ?? 0,
-    title: v.title || 'Untitled listing',
+    title: v.title || t('form.previewUntitled'),
     description: v.description || null,
-    country: v.country || 'Country',
+    country: v.country || t('form.previewCountry'),
     sector: v.sector,
     license_type: v.license_type || '—',
     regulator: v.regulator || null,
@@ -232,30 +234,30 @@ export function AssetForm({
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
       <form onSubmit={submit} className="grid gap-5">
-        <Group title="What it is">
-          <Field label="Title">
+        <Group title={t('form.whatItIs')}>
+          <Field label={t('form.title')}>
             <input
               required
               value={v.title}
               onChange={set('title')}
               className={input}
-              placeholder="Lithuanian EMI with SEPA access"
+              placeholder={t('form.titlePlaceholder')}
             />
           </Field>
-          <Field label="Description">
+          <Field label={t('form.description')}>
             <textarea
               rows={3}
               value={v.description}
               onChange={set('description')}
               className={input}
-              placeholder="What a buyer gets, in plain terms."
+              placeholder={t('form.descriptionHint')}
             />
           </Field>
         </Group>
 
-        <Group title="The licence" note="What a buyer filters on first.">
+        <Group title={t('form.theLicence')} note={t('form.theLicenceNote')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Country">
+            <Field label={t('card.country')}>
               <input
                 required
                 value={v.country}
@@ -264,7 +266,7 @@ export function AssetForm({
                 placeholder="Lithuania"
               />
             </Field>
-            <Field label="Sector">
+            <Field label={t('form.sector')}>
               <select required value={v.sector} onChange={set('sector')} className={input}>
                 {SECTORS.map((s) => (
                   <option key={s} value={s}>
@@ -273,7 +275,7 @@ export function AssetForm({
                 ))}
               </select>
             </Field>
-            <Field label="Type of licence">
+            <Field label={t('card.typeOfLicence')}>
               <input
                 required
                 value={v.license_type}
@@ -282,7 +284,7 @@ export function AssetForm({
                 placeholder="EMI"
               />
             </Field>
-            <Field label="Regulator">
+            <Field label={t('card.regulator')}>
               <input
                 value={v.regulator}
                 onChange={set('regulator')}
@@ -291,7 +293,7 @@ export function AssetForm({
               />
             </Field>
           </div>
-          <Field label="Included activities" hint="Comma separated.">
+          <Field label={t('card.included')} hint={t('form.includedHint')}>
             <input
               value={v.included_activities}
               onChange={set('included_activities')}
@@ -301,26 +303,26 @@ export function AssetForm({
           </Field>
         </Group>
 
-        <Group title="The business">
+        <Group title={t('form.theBusiness')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Asset type">
+            <Field label={t('listing.assetType')}>
               <select required value={v.asset_kind} onChange={set('asset_kind')} className={input}>
-                <option value="LICENSE_ONLY">Licence only</option>
-                <option value="ACTIVE_BUSINESS">Active business</option>
+                <option value="LICENSE_ONLY">{t('filters.licenceOnly')}</option>
+                <option value="ACTIVE_BUSINESS">{t('filters.activeBusiness')}</option>
               </select>
             </Field>
-            <Field label="Business status">
+            <Field label={t('card.businessStatus')}>
               <select
                 required
                 value={v.business_state}
                 onChange={set('business_state')}
                 className={input}
               >
-                <option value="NOT_ACTIVE">Not active</option>
-                <option value="ACTIVE">Active</option>
+                <option value="NOT_ACTIVE">{t('card.notActive')}</option>
+                <option value="ACTIVE">{t('card.active')}</option>
               </select>
             </Field>
-            <Field label="Year of issue">
+            <Field label={t('card.yearOfIssue')}>
               <input
                 type="number"
                 min={1990}
@@ -330,7 +332,7 @@ export function AssetForm({
                 className={input}
               />
             </Field>
-            <Field label="Employees">
+            <Field label={t('card.employees')}>
               <input
                 type="number"
                 min={0}
@@ -342,15 +344,15 @@ export function AssetForm({
           </div>
         </Group>
 
-        <Group title="Price and publication">
+        <Group title={t('form.priceAndPublication')}>
           <Field
-            label="Asking price"
+            label={t('listing.askingPrice')}
             hint={
               v.price
                 ? priceCents === null
-                  ? 'Could not read this as a price.'
-                  : `Will be stored as ${formatPriceFull(priceCents)}`
-                : 'Accepts 2.5M, 400K or 40000.'
+                  ? t('form.priceUnreadable')
+                  : t('form.priceStored', { value: formatPriceFull(priceCents) })
+                : t('form.priceHint')
             }
           >
             <input
@@ -363,16 +365,16 @@ export function AssetForm({
           </Field>
 
           <Field
-            label="Publish state"
+            label={t('form.publishState')}
             hint={
               v.status === 'DRAFT'
-                ? 'Only you and a platform manager can see a draft.'
-                : 'Visible to every active buyer.'
+                ? t('form.draftHint')
+                : t('form.publishedHint')
             }
           >
             <select value={v.status} onChange={set('status')} className={input}>
-              <option value="PUBLISHED">Published</option>
-              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">{t('form.published')}</option>
+              <option value="DRAFT">{t('form.draft')}</option>
             </select>
           </Field>
         </Group>
@@ -388,8 +390,7 @@ export function AssetForm({
 
         {notes === null && (
           <p role="status" className="rounded-xl border px-5 py-4 text-sm text-muted">
-            The check could not run just now — it is rate limited on a free key. Publishing is
-            unaffected.
+            {t('form.checkUnavailable')}
           </p>
         )}
 
@@ -401,14 +402,13 @@ export function AssetForm({
             }`}
           >
             {notes.length === 0 ? (
-              <p className="text-sm text-ok">
-                Nothing to flag: the description and the fields agree.
-              </p>
+              <p className="text-sm text-ok">{t('form.checkClean')}</p>
             ) : (
               <>
                 <p className="mb-3 text-sm text-warn">
-                  {notes.length === 1 ? 'One thing' : `${notes.length} things`} worth a look
-                  before this goes live. None of it blocks publishing.
+                  {notes.length === 1
+                    ? t('form.checkOne')
+                    : t('form.checkMany', { n: notes.length })}
                 </p>
                 <ul className="grid gap-2">
                   {notes.map((n, i) => (
@@ -430,7 +430,7 @@ export function AssetForm({
             disabled={busy}
             className="rounded-full bg-accent px-6 py-2 text-sm font-medium text-accent-fg transition hover:opacity-90 disabled:opacity-50"
           >
-            {busy ? 'Saving…' : asset ? 'Save changes' : 'Publish listing'}
+            {busy ? t('form.saving') : asset ? t('form.saveChanges') : t('form.publishListing')}
           </button>
           {aiAvailable && (
             <button
@@ -439,28 +439,28 @@ export function AssetForm({
               disabled={checking || !v.title || !v.description}
               title={
                 !v.title || !v.description
-                  ? 'Needs a title and a description to check against.'
+                  ? t('form.checkNeedsFields')
                   : undefined
               }
               className="rounded-full border px-5 py-2 text-sm text-muted transition hover:border-accent-text hover:text-accent-text disabled:opacity-50"
             >
-              {checking ? 'Reading the draft…' : 'Check before publishing'}
+              {checking ? t('form.checking') : t('form.check')}
             </button>
           )}
           <a
             href={asset ? `/assets/${asset.id}` : '/seller/assets'}
             className="text-sm text-muted transition hover:text-fg"
           >
-            Cancel
+            {t('form.cancel')}
           </a>
         </div>
       </form>
 
       <div className="lg:sticky lg:top-20">
         <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-faint">
-          What a buyer will see
+          {t('form.preview')}
         </p>
-        <AssetCard asset={preview} showStatus linked={false} peersCents={[]} />
+        <AssetCard t={t} asset={preview} showStatus linked={false} peersCents={[]} />
       </div>
     </div>
   )

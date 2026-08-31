@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useT } from '@/components/LocaleProvider'
 
 // Three states, not two: light, dark, and "whatever the system says", which is the state
 // everyone starts in and the only one that is correct until someone actually chooses. The
@@ -10,10 +11,10 @@ type Theme = 'light' | 'dark' | 'system'
 
 const NEXT: Record<Theme, Theme> = { system: 'light', light: 'dark', dark: 'system' }
 
-const LABEL: Record<Theme, string> = {
-  system: 'Theme: follows your system',
-  light: 'Theme: light',
-  dark: 'Theme: dark',
+const LABEL_KEY: Record<Theme, string> = {
+  system: 'theme.system',
+  light: 'theme.light',
+  dark: 'theme.dark',
 }
 
 function apply(theme: Theme) {
@@ -28,6 +29,7 @@ function apply(theme: Theme) {
 }
 
 export function ThemeToggle() {
+  const t = useT()
   // Starts at `system` on the server and on the first client render, so the markup matches.
   // The real value arrives in the effect; the flash it would otherwise cause is prevented by
   // the inline script in the layout, which runs before first paint.
@@ -55,8 +57,8 @@ export function ThemeToggle() {
   return (
     <button
       onClick={cycle}
-      title={LABEL[theme]}
-      aria-label={`${LABEL[theme]}. Change it.`}
+      title={t(LABEL_KEY[theme])}
+      aria-label={`${t(LABEL_KEY[theme])}. ${t('theme.change')}`}
       className="grid size-8 shrink-0 place-items-center rounded-full border text-muted transition hover:text-fg"
     >
       {theme === 'dark' ? (

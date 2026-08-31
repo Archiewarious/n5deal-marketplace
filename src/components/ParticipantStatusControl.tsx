@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/components/LocaleProvider'
 import type { UserStatus } from '@/lib/types'
 
 // Suspending a participant flips profiles.status. Nothing is deleted: the listings, the
@@ -17,6 +18,7 @@ export function ParticipantStatusControl({
   userId: string
   status: UserStatus
 }) {
+  const t = useT()
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,20 +46,20 @@ export function ParticipantStatusControl({
   if (pending) {
     return (
       <span className="inline-flex items-center gap-2 whitespace-nowrap">
-        <span className="text-xs text-muted">Suspend this account?</span>
+        <span className="text-xs text-muted">{t('status.confirmSuspendAccount')}</span>
         <button
           onClick={toggle}
           disabled={busy}
           autoFocus
           className="rounded-full border border-danger px-3 py-1 text-xs text-danger transition hover:bg-danger-bg disabled:opacity-50"
         >
-          Yes, suspend
+          {t('status.yesSuspend')}
         </button>
         <button
           onClick={() => setPending(false)}
           className="rounded-full border px-3 py-1 text-xs text-muted transition hover:text-fg"
         >
-          Cancel
+          {t('status.cancel')}
         </button>
       </span>
     )
@@ -79,7 +81,7 @@ export function ParticipantStatusControl({
             : 'text-ok hover:border-ok'
         }`}
       >
-        {next === 'SUSPENDED' ? 'Suspend' : 'Restore'}
+        {next === 'SUSPENDED' ? t('status.suspend') : t('status.restore')}
       </button>
     </span>
   )

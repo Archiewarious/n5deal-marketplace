@@ -10,8 +10,12 @@ import type { Asset, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 import { StatStrip } from '@/components/StatStrip'
 import { CountryTag } from '@/components/CountryTag'
+import { getT } from '@/lib/locale'
 
-export const metadata = { title: 'Administration' }
+export async function generateMetadata() {
+  const t = await getT()
+  return { title: t('nav.admin') }
+}
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
@@ -28,8 +32,27 @@ const STATE_STYLE: Record<Asset['status'], string> = {
   REMOVED: 'text-danger bg-danger-bg',
 }
 
+const ROLE_KEY: Record<Profile['role'], string> = {
+  SELLER: 'role.seller',
+  BUYER: 'role.buyer',
+  MANAGER: 'role.managerShort',
+}
+
+const STATUS_KEY: Record<Profile['status'], string> = {
+  ACTIVE: 'admin.statusActive',
+  SUSPENDED: 'admin.statusSuspended',
+}
+
+const STATE_KEY: Record<Asset['status'], string> = {
+  PUBLISHED: 'state.published',
+  DRAFT: 'state.draft',
+  SUSPENDED: 'state.suspended',
+  REMOVED: 'state.removed',
+}
+
 export default async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
   const profile = await requireRole('MANAGER')
+  const t = await getT()
   const sp = await searchParams
   const str = (v: string | string[] | undefined) => String((Array.isArray(v) ? v[0] : v) ?? '')
   // Two tables, two searches. One shared box meant narrowing the participant list also gutted
@@ -71,30 +94,31 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     <>
       <TopNav profile={profile} />
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
-        <p className="text-xs text-faint">N5Deal / Administration</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Participants and listings</h1>
-        <p className="mt-1 text-sm text-muted">
-          Everything on the platform, including drafts and removed listings.
-        </p>
+        <p className="text-xs text-faint">{t('admin.crumb')}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('admin.title')}</h1>
+        <p className="mt-1 text-sm text-muted">{t('admin.lede')}</p>
 
         {/* A moderation console should open with the state of the platform, not with a search box.
             Four numbers a manager acts on: who is here, who is blocked, what is live, what it is
             worth. All four are counted from the same rows the tables below render. */}
         <StatStrip
           stats={[
-            { label: 'Participants', value: String(people.length) },
+            { label: t('admin.participants'), value: String(people.length) },
             {
-              label: 'Suspended',
+              label: t('admin.suspendedStat'),
               value: String(people.filter((x) => x.status === 'SUSPENDED').length),
               tone: 'text-danger',
             },
             {
-              label: 'Live listings',
-              value: `${assets.filter((a) => a.status === 'PUBLISHED').length} of ${assets.length}`,
+              label: t('admin.liveListings'),
+              value: t('admin.ofTotal', {
+                shown: assets.filter((a) => a.status === 'PUBLISHED').length,
+                total: assets.length,
+              }),
               tone: 'text-ok',
             },
             {
-              label: 'Value listed',
+              label: t('admin.valueListed'),
               value: formatPriceShort(
                 assets
                   .filter((a) => a.status === 'PUBLISHED')
@@ -105,45 +129,48 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           ]}
         />
 
-        <LoadWarning what="The participant list" error={peopleError} />
-        <LoadWarning what="The listing table" error={assetsError} />
+        <LoadWarning what={t('admin.loadParticipants')} error={peopleError} />
+        <LoadWarning what={t('admin.loadListings')} error={assetsError} />
 
         <section className="mb-10">
           <h2 className="mb-3 text-sm font-medium">
-            Participants <span className="text-faint">({visiblePeople.length} of {people.length})</span>
+            {t('admin.participants')}{' '}
+            <span className="text-faint">
+              ({t('admin.ofTotal', { shown: visiblePeople.length, total: people.length })})
+            </span>
           </h2>
 
           {/* Plain GET forms: no client state, the filter lives in the URL and the view is
               shareable. Each table keeps its own parameters so one search never empties the other. */}
           <form className="mb-3 flex flex-wrap gap-2">
-            <input name="pq" defaultValue={pq} placeholder="Search participants"
-              aria-label="Search participants"
+            <input name="pq" defaultValue={pq} placeholder={t('admin.searchParticipants')}
+              aria-label={t('admin.searchParticipants')}
               className="min-w-56 flex-1 rounded-full border bg-field px-4 py-2 text-sm" />
-            <select name="prole" defaultValue={pRole} aria-label="Filter by role"
+            <select name="prole" defaultValue={pRole} aria-label={t('admin.filterByRole')}
               className="rounded-lg border bg-field px-3 py-2 text-sm">
-              <option value="">Any role</option>
-              <option value="BUYER">Buyer</option>
-              <option value="SELLER">Seller</option>
-              <option value="MANAGER">Manager</option>
+              <option value="">{t('admin.anyRole')}</option>
+              <option value="BUYER">{t('role.buyer')}</option>
+              <option value="SELLER">{t('role.seller')}</option>
+              <option value="MANAGER">{t('role.managerShort')}</option>
             </select>
-            <select name="pstatus" defaultValue={pStatus} aria-label="Filter by status"
+            <select name="pstatus" defaultValue={pStatus} aria-label={t('admin.filterByStatus')}
               className="rounded-lg border bg-field px-3 py-2 text-sm">
-              <option value="">Any status</option>
-              <option value="ACTIVE">Active</option>
-              <option value="SUSPENDED">Suspended</option>
+              <option value="">{t('admin.anyStatus')}</option>
+              <option value="ACTIVE">{t('admin.statusActive')}</option>
+              <option value="SUSPENDED">{t('admin.statusSuspended')}</option>
             </select>
             {aq && <input type="hidden" name="aq" value={aq} />}
             {aStatus && <input type="hidden" name="astatus" value={aStatus} />}
-            <button className="rounded-full border px-4 py-2 text-sm text-muted transition hover:text-fg">Apply</button>
+            <button className="rounded-full border px-4 py-2 text-sm text-muted transition hover:text-fg">{t('admin.apply')}</button>
           </form>
           <div className="overflow-x-auto rounded-xl border bg-surface">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-[10px] uppercase tracking-wider text-faint">
-                  <th className="px-4 py-3 font-normal">Name</th>
-                  <th className="px-4 py-3 font-normal">Role</th>
-                  <th className="px-4 py-3 font-normal">Email</th>
-                  <th className="px-4 py-3 font-normal">Status</th>
+                  <th className="px-4 py-3 font-normal">{t('admin.colName')}</th>
+                  <th className="px-4 py-3 font-normal">{t('admin.colRole')}</th>
+                  <th className="px-4 py-3 font-normal">{t('admin.colEmail')}</th>
+                  <th className="px-4 py-3 font-normal">{t('admin.colStatus')}</th>
                   <th className="px-4 py-3 font-normal" />
                 </tr>
               </thead>
@@ -155,7 +182,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                       <p className="text-xs text-faint">{p.full_name}</p>
                     </td>
                     <td className={`px-4 py-3 font-mono text-xs ${ROLE_STYLE[p.role]}`}>
-                      {p.role.toLowerCase()}
+                      {t(ROLE_KEY[p.role])}
                     </td>
                     <td className="px-4 py-3 text-muted">{p.email}</td>
                     <td className="px-4 py-3">
@@ -164,7 +191,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                           p.status === 'ACTIVE' ? 'bg-ok-bg text-ok' : 'bg-danger-bg text-danger'
                         }`}
                       >
-                        {p.status.toLowerCase()}
+                        {t(STATUS_KEY[p.status])}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -181,35 +208,38 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
         <section>
           <h2 className="mb-3 text-sm font-medium">
-            Listings <span className="text-faint">({visibleAssets.length} of {assets.length})</span>
+            {t('admin.listings')}{' '}
+            <span className="text-faint">
+              ({t('admin.ofTotal', { shown: visibleAssets.length, total: assets.length })})
+            </span>
           </h2>
 
           <form className="mb-3 flex flex-wrap gap-2">
-            <input name="aq" defaultValue={aq} placeholder="Search listings"
-              aria-label="Search listings"
+            <input name="aq" defaultValue={aq} placeholder={t('admin.searchListings')}
+              aria-label={t('admin.searchListings')}
               className="min-w-56 flex-1 rounded-full border bg-field px-4 py-2 text-sm" />
-            <select name="astatus" defaultValue={aStatus} aria-label="Filter listings by status"
+            <select name="astatus" defaultValue={aStatus} aria-label={t('admin.filterListingsByStatus')}
               className="rounded-lg border bg-field px-3 py-2 text-sm">
-              <option value="">Any status</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="DRAFT">Draft</option>
-              <option value="SUSPENDED">Suspended</option>
-              <option value="REMOVED">Removed</option>
+              <option value="">{t('admin.anyStatus')}</option>
+              <option value="PUBLISHED">{t('form.published')}</option>
+              <option value="DRAFT">{t('form.draft')}</option>
+              <option value="SUSPENDED">{t('state.suspended')}</option>
+              <option value="REMOVED">{t('state.removed')}</option>
             </select>
             {pq && <input type="hidden" name="pq" value={pq} />}
             {pRole && <input type="hidden" name="prole" value={pRole} />}
             {pStatus && <input type="hidden" name="pstatus" value={pStatus} />}
-            <button className="rounded-full border px-4 py-2 text-sm text-muted transition hover:text-fg">Apply</button>
+            <button className="rounded-full border px-4 py-2 text-sm text-muted transition hover:text-fg">{t('admin.apply')}</button>
           </form>
           <div className="overflow-x-auto rounded-xl border bg-surface">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-[10px] uppercase tracking-wider text-faint">
-                  <th className="px-4 py-3 font-normal">Asset</th>
-                  <th className="px-4 py-3 font-normal">Seller</th>
-                  <th className="px-4 py-3 font-normal">Jurisdiction</th>
-                  <th className="px-4 py-3 font-normal">Price</th>
-                  <th className="px-4 py-3 font-normal">Status</th>
+                  <th className="px-4 py-3 font-normal">{t('seller.colAsset')}</th>
+                  <th className="px-4 py-3 font-normal">{t('admin.colSeller')}</th>
+                  <th className="px-4 py-3 font-normal">{t('seller.colJurisdiction')}</th>
+                  <th className="px-4 py-3 font-normal">{t('seller.colPrice')}</th>
+                  <th className="px-4 py-3 font-normal">{t('admin.colStatus')}</th>
                   <th className="px-4 py-3 font-normal" />
                 </tr>
               </thead>
@@ -236,7 +266,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] ${STATE_STYLE[a.status]}`}
                       >
-                        {a.status.toLowerCase()}
+                        {t(STATE_KEY[a.status])}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">

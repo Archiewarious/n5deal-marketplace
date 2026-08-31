@@ -1,40 +1,47 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { getT } from '@/lib/locale'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import type { Profile } from '@/lib/types'
 
 // Navigation is built from the role, so a buyer never sees a link they would be bounced
 // from. The links are a convenience, not the access control — that lives in RLS.
-const LINKS: Record<Profile['role'], { href: string; label: string }[]> = {
+const LINKS: Record<Profile['role'], { href: string; key: string }[]> = {
   BUYER: [
-    { href: '/assets', label: 'Assets' },
-    { href: '/buyer/profile', label: 'My mandate' },
-    { href: '/messages', label: 'Messages' },
+    { href: '/assets', key: 'nav.assets' },
+    { href: '/buyer/profile', key: 'nav.myMandate' },
+    { href: '/messages', key: 'nav.messages' },
   ],
   SELLER: [
-    { href: '/assets', label: 'Assets' },
-    { href: '/seller/assets', label: 'My listings' },
-    { href: '/buyers', label: 'Buyers' },
-    { href: '/messages', label: 'Messages' },
+    { href: '/assets', key: 'nav.assets' },
+    { href: '/seller/assets', key: 'nav.myListings' },
+    { href: '/buyers', key: 'nav.buyers' },
+    { href: '/messages', key: 'nav.messages' },
   ],
   MANAGER: [
-    { href: '/assets', label: 'Assets' },
-    { href: '/buyers', label: 'Buyers' },
-    { href: '/admin', label: 'Administration' },
-    { href: '/messages', label: 'Messages' },
+    { href: '/assets', key: 'nav.assets' },
+    { href: '/buyers', key: 'nav.buyers' },
+    { href: '/admin', key: 'nav.admin' },
+    { href: '/messages', key: 'nav.messages' },
   ],
 }
 
 // The role is carried as a colour, the way the reference site colour-codes Seller, Buyer and
 // Partner in its own navigation: a manager and a buyer should never mistake one screen for the
 // other, and a chip does that faster than reading a word.
-const ROLE_CHIP: Record<Profile['role'], { label: string; short: string; className: string }> = {
-  SELLER: { label: 'Seller', short: 'Seller', className: 'bg-seller-bg text-seller' },
-  BUYER: { label: 'Buyer', short: 'Buyer', className: 'bg-buyer-bg text-buyer' },
-  MANAGER: { label: 'Platform manager', short: 'Manager', className: 'bg-manager-bg text-manager' },
+const ROLE_CHIP: Record<Profile['role'], { key: string; shortKey: string; className: string }> = {
+  SELLER: { key: 'role.seller', shortKey: 'role.seller', className: 'bg-seller-bg text-seller' },
+  BUYER: { key: 'role.buyer', shortKey: 'role.buyer', className: 'bg-buyer-bg text-buyer' },
+  MANAGER: {
+    key: 'role.manager',
+    shortKey: 'role.managerShort',
+    className: 'bg-manager-bg text-manager',
+  },
 }
 
-export function TopNav({ profile }: { profile: Profile }) {
+export async function TopNav({ profile }: { profile: Profile }) {
+  const t = await getT()
   const chip = ROLE_CHIP[profile.role]
   return (
     <header className="sticky top-0 z-20 border-b bg-surface/85 backdrop-blur">
@@ -54,7 +61,7 @@ export function TopNav({ profile }: { profile: Profile }) {
               href={l.href}
               className="shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-muted transition hover:bg-elevated hover:text-fg"
             >
-              {l.label}
+              {t(l.key)}
             </Link>
           ))}
         </nav>
@@ -62,29 +69,30 @@ export function TopNav({ profile }: { profile: Profile }) {
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <span
             className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] ${chip.className}`}
-            title={`Signed in as ${chip.label}`}
+            title={t(chip.key)}
           >
-            <span className="sm:hidden">{chip.short}</span>
-            <span className="hidden sm:inline">{chip.label}</span>
+            <span className="sm:hidden">{t(chip.shortKey)}</span>
+            <span className="hidden sm:inline">{t(chip.key)}</span>
           </span>
           <div className="hidden text-right sm:block">
             <p className="text-xs leading-tight">{profile.full_name}</p>
             <p className="text-[11px] leading-tight text-faint">
               {profile.company ?? profile.role}
               {profile.status === 'SUSPENDED' && (
-                <span className="ml-1 text-danger">suspended</span>
+                <span className="ml-1 text-danger">{t('nav.suspended')}</span>
               )}
             </p>
           </div>
+          <LanguageSwitcher />
           <ThemeToggle />
-          <SignOut />
+          <SignOut t={t} />
         </div>
       </div>
     </header>
   )
 }
 
-function SignOut() {
+function SignOut({ t }: { t: Awaited<ReturnType<typeof getT>> }) {
   async function signOut() {
     'use server'
     const supabase = await createClient()
@@ -96,7 +104,7 @@ function SignOut() {
   return (
     <form action={signOut}>
       <button className="rounded-full border px-3 py-1.5 text-xs text-muted transition hover:text-fg">
-        Sign out
+        {t('nav.signOut')}
       </button>
     </form>
   )
