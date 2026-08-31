@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import type { Profile } from '@/lib/types'
 
 // Navigation is built from the role, so a buyer never sees a link they would be bounced
@@ -75,6 +76,7 @@ export function TopNav({ profile }: { profile: Profile }) {
               )}
             </p>
           </div>
+          <ThemeToggle />
           <SignOut />
         </div>
       </div>

@@ -36,7 +36,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} ${mono.variable} h-full`} suppressHydrationWarning>
+      <head>
+        {/* Runs before first paint, which is the whole point: read once from the browser and
+            stamp the root element, so a visitor who chose dark never sees the light page flash
+            past first. Inline and tiny because anything loaded as a file arrives too late. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         {/* Every page puts two to four nav links, a role chip, a name and a sign-out button
             ahead of the content. Without this, reaching the listings by keyboard means tabbing

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { formatPriceFull } from '@/lib/format'
 import { CountryTag } from '@/components/CountryTag'
 import { RoleCards } from '@/components/RoleCards'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export const metadata = {
   title: 'Licensed financial assets, sold with the paperwork attached',
@@ -40,13 +41,13 @@ export default async function Home() {
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(1100px 560px at 18% -14%, rgba(45,86,140,.26), transparent 64%)',
-          }}
+          style={{ background: 'var(--wash)' }}
         />
 
         <div className="relative mx-auto max-w-6xl">
+          <div className="absolute right-0 top-0">
+            <ThemeToggle />
+          </div>
           <p className="rise flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-faint">
             <span className="size-1.5 rounded-full bg-seller" />
             Licence register

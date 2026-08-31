@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { RoleCards } from '@/components/RoleCards'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export const metadata = { title: 'Choose a role' }
 
@@ -14,11 +15,12 @@ export default function LoginPage() {
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(900px 520px at 50% -12%, rgba(45,86,140,.28), transparent 62%)',
-        }}
+        style={{ background: 'var(--wash)' }}
       />
+
+      <div className="absolute right-4 top-4 z-10 sm:right-6">
+        <ThemeToggle />
+      </div>
 
       <div className="relative mx-auto w-full max-w-5xl">
         <header className="rise mb-10 text-center">

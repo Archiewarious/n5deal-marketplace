@@ -33,32 +33,112 @@
   --font-mono: var(--font-plex), ui-monospace, "SFMono-Regular", "Cascadia Mono", monospace;
 }
 
-/* A neutral near-black ground with one deep navy in it.
-   The ground carries no colour cast at all, which is the whole trick: it leaves the navy as
-   the only warm-or-cool thing in the room, so a primary button reads as the primary button
-   without being bright. It is charcoal rather than pure black because a listing page is read
-   for minutes at a time, and #000 under white numerals is the fastest way to tire an eye out.
-   The accent is a fill colour first — dark enough that white sits on it at 10.6:1 — and is
-   opened up to a steel blue only where it has to carry text on the dark ground.
-   Every value below is measured against --app; the smallest labels are 11px, so 4.5:1 is the
-   floor and nothing here is at it by accident. */
+/* ── Two palettes, one set of names ──────────────────────────────────────────
+   Light is the default because N5Deal runs on white and the assignment names
+   visual consistency with them as a criterion. Dark is the same room at night, and
+   it is not a filter over the light one: on a light ground the accent has to be dark
+   enough to carry text, on a dark ground it has to be light enough, so both are
+   written out rather than derived.
+
+   Three states, deliberately. Bare `:root` is light. `prefers-color-scheme: dark`
+   flips it for anyone whose system is dark and who has not chosen. `[data-theme]`
+   beats both, in either direction, so the toggle always wins.
+
+   Every value is measured against its own --app. The smallest labels are 10-11px,
+   so 4.5:1 is the floor and the ratios are recorded where they are close to it. */
 :root {
+  --app: #f4f5f7;
+  --surface: #ffffff;
+  --elevated: #eceef2;
+  --field: #ffffff;
+  --line: #e2e5ea;
+  /* 16.3:1 */
+  --fg: #16181d;
+  /* 5.7:1 */
+  --muted: #5a616c;
+  /* 4.8:1 — the floor for 10-11px labels */
+  --faint: #666d78;
+  /* deep navy fill; white on it is 10.6:1 */
+  --accent: #1d3f6b;
+  --accent-fg: #ffffff;
+  /* on a light ground the same navy carries text directly: 10.0:1 */
+  --accent-text: #1d3f6b;
+  --ring: #1d3f6b;
+  --ok: #0e7a52;
+  --ok-bg: rgba(14, 122, 82, 0.1);
+  --warn: #8a6100;
+  --warn-bg: rgba(138, 97, 0, 0.1);
+  --danger: #b3243a;
+  --danger-bg: rgba(179, 36, 58, 0.09);
+
+  /* N5Deal colour-codes the three sides of a deal in its own navigation — seller #059669,
+     buyer #383bfe, partner #6a1b9a — so a visitor knows which half of the marketplace they
+     are looking at before reading a word. The same three roles are carried through here,
+     and they mean the same thing everywhere: the role chip in the header, the entry cards,
+     a role's own screens. */
+  --seller: #0e7a52;
+  --seller-bg: rgba(14, 122, 82, 0.1);
+  --buyer: #1d3f6b;
+  --buyer-bg: rgba(29, 63, 107, 0.09);
+  --manager: #6b3fa0;
+  --manager-bg: rgba(107, 63, 160, 0.09);
+
+  /* The wash behind a hero. Named here because it has to change with the ground, and an
+     inline style in a component cannot. */
+  --wash: radial-gradient(1100px 560px at 18% -14%, rgba(29, 63, 107, 0.1), transparent 64%);
+}
+
+/* A neutral near-black ground with one deep navy in it. The ground carries no colour cast at
+   all, which is the whole trick: it leaves the navy as the only warm-or-cool thing in the room,
+   so a primary button reads as the primary button without being bright. It is charcoal rather
+   than pure black because a listing page is read for minutes at a time, and #000 under white
+   numerals is the fastest way to tire an eye out. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --app: #1a1a1c;
+    --surface: #212124;
+    --elevated: #2a2a2e;
+    /* inputs sit slightly *below* the page, so a field reads as a recess, not a card */
+    --field: #141416;
+    --line: #2f2f33;
+    /* 14.7:1 — a hair warm, which keeps the cool accent from being the only deliberate hue */
+    --fg: #edece9;
+    /* 6.3:1 */
+    --muted: #9c9c9e;
+    /* 4.7:1 */
+    --faint: #85858a;
+    --accent: #1d3f6b;
+    --accent-fg: #ffffff;
+    /* the same hue opened up until it can carry text on a dark ground: 7.0:1 */
+    --accent-text: #7fa8d8;
+    --ring: #7fa8d8;
+    --ok: #56b98c;
+    --ok-bg: rgba(86, 185, 140, 0.13);
+    --warn: #d9a441;
+    --warn-bg: rgba(217, 164, 65, 0.13);
+    --danger: #e0707f;
+    --danger-bg: rgba(224, 112, 127, 0.13);
+    --seller: #56b98c;
+    --seller-bg: rgba(86, 185, 140, 0.12);
+    --buyer: #7fa8d8;
+    --buyer-bg: rgba(127, 168, 216, 0.14);
+    --manager: #a898dd;
+    --manager-bg: rgba(168, 152, 221, 0.14);
+    --wash: radial-gradient(1100px 560px at 18% -14%, rgba(45, 86, 140, 0.26), transparent 64%);
+  }
+}
+
+:root[data-theme="dark"] {
   --app: #1a1a1c;
   --surface: #212124;
   --elevated: #2a2a2e;
-  /* inputs sit slightly *below* the page, so a field reads as a recess, not a card */
   --field: #141416;
   --line: #2f2f33;
-  /* 14.7:1 — a hair warm, which keeps the cool accent from reading as the only deliberate hue */
   --fg: #edece9;
-  /* 6.3:1 */
   --muted: #9c9c9e;
-  /* 4.7:1 — the floor for 10-11px labels */
   --faint: #85858a;
-  /* deep navy, used as a fill; white on it is 10.6:1 */
   --accent: #1d3f6b;
   --accent-fg: #ffffff;
-  /* the same hue opened up until it can carry text: 7.0:1 on --app */
   --accent-text: #7fa8d8;
   --ring: #7fa8d8;
   --ok: #56b98c;
@@ -67,18 +147,13 @@
   --warn-bg: rgba(217, 164, 65, 0.13);
   --danger: #e0707f;
   --danger-bg: rgba(224, 112, 127, 0.13);
-
-  /* N5Deal colour-codes the three sides of a deal in its own navigation — seller #059669,
-     buyer #383bfe, partner #6a1b9a — so a visitor knows which half of the marketplace they
-     are looking at before reading a word. The same three roles are carried through here in
-     the muted register the rest of the palette is in, and they mean the same thing
-     everywhere: the role chip in the header, the entry cards, a role's own screens. */
   --seller: #56b98c;
   --seller-bg: rgba(86, 185, 140, 0.12);
   --buyer: #7fa8d8;
   --buyer-bg: rgba(127, 168, 216, 0.14);
   --manager: #a898dd;
   --manager-bg: rgba(168, 152, 221, 0.14);
+  --wash: radial-gradient(1100px 560px at 18% -14%, rgba(45, 86, 140, 0.26), transparent 64%);
 }
 
 /* Entrance choreography. One keyframe, applied with a per-item delay, so a page assembles
