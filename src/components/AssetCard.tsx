@@ -57,7 +57,10 @@ export function AssetCard({
   peerLabel?: string
 }) {
   return (
-    <article className="rounded-xl border bg-surface p-5">
+    // `relative` + a stretched link on the title makes the whole row clickable. A listing card
+    // that only responds on one small button is the kind of thing people click three times before
+    // giving up on.
+    <article className="group relative rounded-xl border bg-surface p-5 transition-colors hover:border-accent-text/50">
       <header className="mb-4 flex items-center gap-3">
         <span className="grid size-8 shrink-0 place-items-center rounded-full border text-xs text-muted">
           {asset.public_id}
@@ -66,7 +69,11 @@ export function AssetCard({
           {countryFlag(asset.country)}
         </span>
 
-        <h2 className="min-w-0 flex-1 truncate text-base font-medium">{asset.title}</h2>
+        <h2 className="min-w-0 flex-1 truncate text-base font-medium">
+          <Link href={`/assets/${asset.id}`} className="after:absolute after:inset-0">
+            {asset.title}
+          </Link>
+        </h2>
 
         <div className="flex shrink-0 items-center gap-2">
           {matchScore !== undefined && (
@@ -141,7 +148,7 @@ export function AssetCard({
         </p>
         <Link
           href={`/assets/${asset.id}`}
-          className="rounded-full bg-accent px-5 py-1.5 text-xs font-medium text-accent-fg transition hover:opacity-90"
+          className="relative rounded-full bg-accent px-5 py-1.5 text-xs font-medium text-accent-fg transition hover:opacity-90"
         >
           View asset
         </Link>

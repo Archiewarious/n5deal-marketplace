@@ -7,6 +7,7 @@ import { TopNav } from '@/components/TopNav'
 import { ListingStatusControl } from '@/components/ListingStatusControl'
 import type { Asset } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
+import { StatStrip } from '@/components/StatStrip'
 
 const STATE_STYLE: Record<Asset['status'], string> = {
   PUBLISHED: 'text-ok bg-ok-bg',
@@ -34,18 +35,50 @@ export default async function SellerAssetsPage() {
     <>
       <TopNav profile={profile} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
-        <div className="mb-6 flex items-end justify-between gap-4">
+        <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-xs text-faint">N5Deal / My listings</p>
-            <h1 className="text-xl font-semibold">Listings you published</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Listings you published</h1>
+            <p className="mt-1 text-sm text-muted">
+              Drafts stay private until you publish them.
+            </p>
           </div>
           <Link
             href="/seller/assets/new"
-            className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-accent-fg"
+            className="shrink-0 rounded-full bg-accent px-5 py-2 text-sm font-medium text-accent-fg transition hover:opacity-90"
           >
             Publish an asset
           </Link>
         </div>
+
+        {/* What a seller checks when they open this page: is anything still sitting in draft,
+            and is anyone looking. Both are counted from the rows in the table below. */}
+        <StatStrip
+          stats={[
+            {
+              label: 'Live',
+              value: `${assets.filter((a) => a.status === 'PUBLISHED').length} of ${assets.length}`,
+              tone: 'text-ok',
+            },
+            {
+              label: 'In draft',
+              value: String(assets.filter((a) => a.status === 'DRAFT').length),
+            },
+            {
+              label: 'Views',
+              value: String(assets.reduce((sum, a) => sum + a.views, 0)),
+            },
+            {
+              label: 'Value listed',
+              value: formatPriceShort(
+                assets
+                  .filter((a) => a.status === 'PUBLISHED')
+                  .reduce((sum, a) => sum + a.asking_price_cents, 0),
+              ),
+              tone: 'text-accent-text',
+            },
+          ]}
+        />
 
         <LoadWarning what="Your listings" error={assetsError} />
 

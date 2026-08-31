@@ -6,6 +6,7 @@ import { formatPriceFull, formatDate } from '@/lib/format'
 import { matchAssetToBuyer } from '@/lib/matching'
 import { TopNav } from '@/components/TopNav'
 import { ContactForm } from '@/components/ContactForm'
+import { PriceContext } from '@/components/PriceContext'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 
 function Field({ label, value }: { label: string; value: string | number | null }) {
@@ -38,6 +39,24 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
     .select('*')
     .eq('id', asset.seller_id)
     .maybeSingle<Profile>()
+
+  // Peers for the price chart. Published rows only, and RLS narrows that further per role, so
+  // the comparison is always against listings this user can actually go and look at.
+  // Sector first, because "expensive for an EMI" is the question a buyer is asking. Some
+  // sectors hold two listings, and two dots are not a distribution, so those fall back to the
+  // whole catalogue rather than showing nothing.
+  const { data: peers } = await supabase
+    .from('assets')
+    .select('asking_price_cents, sector')
+    .eq('status', 'PUBLISHED')
+    .returns<{ asking_price_cents: number; sector: string }[]>()
+  const published = peers ?? []
+  const sectorPeers = published.filter((r) => r.sector === asset.sector)
+  const useSector = sectorPeers.length >= 3
+  const peersCents = (useSector ? sectorPeers : published).map((r) => r.asking_price_cents)
+  const peerLabel = useSector
+    ? `Price against ${peersCents.length} other ${asset.sector} listings`
+    : `Price against all ${peersCents.length} listings`
 
   let match: ReturnType<typeof matchAssetToBuyer> | null = null
   if (profile.role === 'BUYER') {
@@ -103,6 +122,16 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 </li>
               ))}
             </ul>
+          </section>
+        )}
+
+        {peersCents.length >= 3 && (
+          <section className="mb-6">
+            <PriceContext
+              priceCents={asset.asking_price_cents}
+              peersCents={peersCents}
+              label={peerLabel}
+            />
           </section>
         )}
 

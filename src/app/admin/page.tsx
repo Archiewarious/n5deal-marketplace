@@ -8,6 +8,7 @@ import { ListingStatusControl } from '@/components/ListingStatusControl'
 import { ParticipantStatusControl } from '@/components/ParticipantStatusControl'
 import type { Asset, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
+import { StatStrip } from '@/components/StatStrip'
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
@@ -62,7 +63,38 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       <TopNav profile={profile} />
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <p className="text-xs text-faint">N5Deal / Administration</p>
-        <h1 className="mb-6 text-xl font-semibold">Participants and listings</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Participants and listings</h1>
+        <p className="mt-1 text-sm text-muted">
+          Everything on the platform, including drafts and removed listings.
+        </p>
+
+        {/* A moderation console should open with the state of the platform, not with a search box.
+            Four numbers a manager acts on: who is here, who is blocked, what is live, what it is
+            worth. All four are counted from the same rows the tables below render. */}
+        <StatStrip
+          stats={[
+            { label: 'Participants', value: String(people.length) },
+            {
+              label: 'Suspended',
+              value: String(people.filter((x) => x.status === 'SUSPENDED').length),
+              tone: 'text-danger',
+            },
+            {
+              label: 'Live listings',
+              value: `${assets.filter((a) => a.status === 'PUBLISHED').length} of ${assets.length}`,
+              tone: 'text-ok',
+            },
+            {
+              label: 'Value listed',
+              value: formatPriceShort(
+                assets
+                  .filter((a) => a.status === 'PUBLISHED')
+                  .reduce((sum, a) => sum + a.asking_price_cents, 0),
+              ),
+              tone: 'text-accent-text',
+            },
+          ]}
+        />
 
         <LoadWarning what="The participant list" error={peopleError} />
         <LoadWarning what="The listing table" error={assetsError} />
