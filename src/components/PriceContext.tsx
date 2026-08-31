@@ -71,10 +71,10 @@ export function PriceContext({
           title={formatPriceShort(priceCents)}
         />
 
-        <span className="absolute left-0 top-6 text-[10px] text-faint">
+        <span className="absolute left-0 top-6 font-mono text-[10px] text-faint">
           {formatPriceShort(min)}
         </span>
-        <span className="absolute right-0 top-6 text-[10px] text-faint">
+        <span className="absolute right-0 top-6 font-mono text-[10px] text-faint">
           {formatPriceShort(max)}
         </span>
       </div>

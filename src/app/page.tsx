@@ -42,8 +42,7 @@ export default async function Home() {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(1000px 520px at 15% -12%, rgba(56,59,254,.20), transparent 62%),' +
-              'radial-gradient(760px 460px at 88% 0%, rgba(52,211,153,.09), transparent 58%)',
+              'radial-gradient(1100px 560px at 18% -14%, rgba(45,86,140,.26), transparent 64%)',
           }}
         />
 

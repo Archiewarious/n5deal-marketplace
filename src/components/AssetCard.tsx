@@ -19,7 +19,7 @@ function Row({
 }) {
   const valueClass =
     tone === 'accent'
-      ? 'text-accent-text font-semibold'
+      ? 'text-accent-text font-semibold tabular-nums'
       : tone === 'ok'
         ? 'text-ok font-medium'
         : value === null
@@ -62,7 +62,7 @@ export function AssetCard({
     // giving up on.
     <article className="group relative rounded-xl border bg-surface p-5 transition-colors hover:border-accent-text/50">
       <header className="mb-4 flex items-center gap-3">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full border text-xs text-muted">
+        <span className="grid size-8 shrink-0 place-items-center rounded-full border font-mono text-xs text-muted">
           {asset.public_id}
         </span>
         <span className="text-2xl leading-none" aria-hidden>

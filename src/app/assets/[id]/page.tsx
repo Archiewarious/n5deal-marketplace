@@ -114,7 +114,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
 
           <div className="rounded-xl border px-5 py-3 text-right">
             <p className="text-[10px] uppercase tracking-wider text-faint">Asking price</p>
-            <p className="text-2xl font-semibold">
+            <p className="font-mono text-2xl font-semibold tabular-nums">
               {formatPriceFull(asset.asking_price_cents)}
             </p>
           </div>

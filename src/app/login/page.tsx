@@ -8,15 +8,15 @@ export const metadata = { title: 'Choose a role' }
 export default function LoginPage() {
   return (
     <main className="relative flex-1 overflow-hidden px-4 py-14 sm:px-6">
-      {/* Two soft pools of the brand hue behind the content, the job the gradient wash does on
-          the reference site and that a flat background cannot. */}
+      {/* One quiet pool of the accent behind the cards. The palette is deliberately flat, so
+          this is depth rather than a glow: enough to keep the three cards off a dead ground,
+          not enough to be noticed as an effect. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(900px 500px at 12% -10%, rgba(56,59,254,.20), transparent 60%),' +
-            'radial-gradient(700px 450px at 92% 6%, rgba(52,211,153,.10), transparent 58%)',
+            'radial-gradient(900px 520px at 50% -12%, rgba(45,86,140,.28), transparent 62%)',
         }}
       />
 

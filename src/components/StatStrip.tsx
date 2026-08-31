@@ -20,7 +20,7 @@ export function StatStrip({
           style={{ animationDelay: `${i * 60}ms` }}
         >
           <p className="text-[10px] uppercase tracking-wider text-faint">{s.label}</p>
-          <p className={`mt-1 text-2xl font-semibold tabular-nums ${s.tone ?? 'text-fg'}`}>
+          <p className={`mt-1 font-mono text-2xl font-semibold tabular-nums ${s.tone ?? 'text-fg'}`}>
             {s.value}
           </p>
         </div>

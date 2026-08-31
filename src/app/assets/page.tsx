@@ -137,7 +137,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
               <span className="size-1.5 rounded-full bg-seller" />
               Value on the platform
             </p>
-            <p className="mt-0.5 text-xl font-semibold tabular-nums">
+            <p className="mt-0.5 font-mono text-xl font-semibold tabular-nums">
               {formatPriceFull(all.reduce((sum, a) => sum + a.asking_price_cents, 0))}
             </p>
           </div>
