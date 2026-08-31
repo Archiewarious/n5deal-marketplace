@@ -236,9 +236,12 @@ using the thing.
 - **Optimistic updates.** Suspend and publish wait for a round trip and then `router.refresh()`.
   Fine at this scale, visibly slow on a long admin table.
 - **A real conversation model,** replacing single messages with threads and unread state.
+- **Multi-language support.** Listed as a Plus in the assignment and deliberately skipped: the
+  copy is the smaller half, and doing it honestly means locale-aware price and date formatting
+  in  plus a decision about which language a listing is written in, which is a
+  content problem rather than a UI one.
 - **Listing edit.** A seller can create and unpublish but not edit; the form exists, only the
   update path is missing.
 - **Accessibility pass.** Form controls have labels and the demo sign-in buttons now have
   accessible names (the accessibility tree read four unnamed buttons before). Nothing has yet
-  been through a
-  screen reader or a keyboard-only run.
+  been through a screen reader or a keyboard-only run.
