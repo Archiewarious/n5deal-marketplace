@@ -7,6 +7,7 @@ import { matchAssetToBuyer } from '@/lib/matching'
 import { TopNav } from '@/components/TopNav'
 import { ContactForm } from '@/components/ContactForm'
 import { PriceChart } from '@/components/PriceChart'
+import { CountryTag } from '@/components/CountryTag'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 
 function Field({ label, value }: { label: string; value: string | number | null }) {
@@ -104,7 +105,10 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-semibold">{asset.title}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight">{asset.title}</h1>
+            <div className="mt-3">
+              <CountryTag country={asset.country} size="lg" />
+            </div>
             {seller && (
               <p className="mt-1 text-sm text-muted">
                 Listed by {seller.company ?? seller.full_name} · {formatDate(asset.created_at)}
@@ -176,11 +180,14 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         </section>
 
         {asset.included_activities.length > 0 && (
-          <section className="mb-6">
-            <p className="mb-2 text-[10px] uppercase tracking-wider text-faint">Included</p>
+          <section className="mb-3 rounded-xl border border-accent-text/15 bg-accent/[0.07] p-5">
+            <p className="mb-3 text-sm text-accent-text">Included activities</p>
             <div className="flex flex-wrap gap-2">
               {asset.included_activities.map((a) => (
-                <span key={a} className="rounded-full border px-3 py-1 text-sm text-muted">
+                <span
+                  key={a}
+                  className="rounded-full border bg-surface px-3 py-1.5 text-sm text-muted"
+                >
                   {a}
                 </span>
               ))}
@@ -189,7 +196,8 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         )}
 
         {asset.description && (
-          <section className="mb-6 rounded-xl border bg-surface p-5">
+          <section className="mb-6 rounded-xl border border-accent-text/15 bg-accent/[0.07] p-5">
+            <p className="mb-2 text-sm text-accent-text">Asset info</p>
             <p className="text-sm leading-relaxed text-muted">{asset.description}</p>
           </section>
         )}
