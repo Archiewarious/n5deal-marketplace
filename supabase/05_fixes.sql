@@ -91,7 +91,8 @@ delete from assets
    'PROBE validated-on-insert'
  );
 
--- After this runs, the honest counts are: manager 31, each seller 30, buyer 29, suspended 0.
+-- After this runs the honest counts are: manager 32, Nordic 30, Atlas 31, buyer 29, suspended 0,
+-- anonymous 0. The two sellers differ because only Atlas has a listing a manager suspended.
 select
   (select count(*) from assets) as manager_sees,
   (select count(*) from assets where status = 'PUBLISHED') as buyer_sees;

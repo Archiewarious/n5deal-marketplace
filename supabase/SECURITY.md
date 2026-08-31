@@ -125,15 +125,16 @@ Every exploit above returns the row unchanged. The ordinary numbers are untouche
 
 | Role | Listings visible |
 |---|---|
-| Platform manager | 31 — everything, drafts and the moderated row included |
-| Seller | 30 — the 29 published, plus their own draft |
+| Platform manager | 32 — everything, drafts and the moderated row included |
+| Seller (Nordic) | 30 — the 29 published, plus their own draft |
+| Seller (Atlas) | 31 — the 29 published, plus their own draft and their own suspended listing |
 | Buyer | 29 |
 | Suspended buyer | 0 |
 | Anonymous | 0 |
 
-Counted again after the catalogue grew from 16 listings to 30. The numbers in a security
-write-up are only worth having if they are re-run when the data changes, and this table has now
-been wrong twice for that reason: once when the catalogue grew, and once when a second audit
-left two probe rows behind and these figures were re-derived over them before they were cleaned
-up. `supabase/05_fixes.sql` removes them and prints the two counts, so the table can be checked
-rather than believed.
+Counted again, for the third time, after `05_fixes.sql` was applied and the audit's probe rows
+were deleted. The number in a security write-up is only worth having if it is re-run when the
+data changes, and this table has been wrong twice for exactly that reason: once when the
+catalogue grew from 16 listings to 30, and once when it was re-derived over rows a second audit
+had left behind. There is no longer one "Seller" row either — the two sellers see different
+totals because only one of them has a listing a manager suspended.d.

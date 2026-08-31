@@ -44,7 +44,7 @@ there is nothing to type.
 
 | Account | Role | Why it is worth opening |
 |---|---|---|
-| `seller.nordic@n5demo.com` | Seller | Owns 17 listings, one a draft only they can see and one a manager removed |
+| `seller.nordic@n5demo.com` | Seller | Owns 16 listings, one of them a draft only they can see |
 | `seller.atlas@n5demo.com` | Seller | Owns the other 16, including one a manager suspended |
 | `buyer.harbour@n5demo.com` | Buyer | Has a mandate, so the catalogue is sorted by fit |
 | `buyer.meridian@n5demo.com` | Buyer | A different mandate — the same catalogue ranks differently |
@@ -84,14 +84,21 @@ This is why the prototype uses real Supabase Auth rather than a "current user" c
 session would have been faster to write, but RLS needs a genuine `auth.uid()`; with a fake one
 the database would have been wide open and the access model would have been theatre in the UI.
 
-What that buys, verified with four accounts against the live database:
+What that buys, counted against the live database rather than read off the policies:
 
-| Role | Published listings visible | Total rows visible |
+| Role | Published visible | Total rows visible |
 |---|---|---|
-| Buyer | 14 | 14 |
-| Seller (Nordic) | 14 | **15** — plus their own draft |
-| Platform Manager | 14 | **16** — everything, including another seller's draft |
+| Buyer | 29 | 29 |
+| Seller (Nordic) | 29 | **30** — plus their own draft |
+| Seller (Atlas) | 29 | **31** — plus their own draft and their own suspended listing |
+| Platform Manager | 29 | **32** — everything, including another seller's draft |
 | Suspended buyer | **0** | **0** |
+| Anonymous | **0** | **0** |
+
+These numbers have been wrong twice, both times because they were written once and not re-run:
+first when the catalogue grew from 16 listings to 30, and again when a second audit left probe
+rows in the table and the totals were re-derived over them. `supabase/05_fixes.sql` ends with
+the two counts as a query, so the table can be checked instead of believed.
 
 The suspended account is the interesting row. Suspension is not a hidden button: the
 `is_active_user()` check sits inside the read policy, so the rows never leave Postgres.
