@@ -40,7 +40,15 @@ function remember<T>(key: string, value: T): T {
 
 type Schema = Record<string, unknown>
 
-async function ask<T>(prompt: string, schema: Schema, timeoutMs = 6000): Promise<T | null> {
+/**
+ * @param timeoutMs is set by measurement, and the measurement is the uncomfortable part: the
+ * same request came back in 4.3s, 8.4s and 12.4s on three consecutive tries against this free
+ * key. There is no budget that makes that predictable, so the search budget is set past the
+ * worst observed rather than at the median — a search that occasionally waits is better than one
+ * that occasionally throws the model's answer away after paying for it, which is what a 6s
+ * budget did in production while working fine locally.
+ */
+async function ask<T>(prompt: string, schema: Schema, timeoutMs = 14000): Promise<T | null> {
   const key = process.env.GEMINI_API_KEY
   if (!key) return null
 

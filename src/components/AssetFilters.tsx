@@ -42,7 +42,11 @@ export function AssetFilters({
     setReading(true)
     try {
       const ctrl = new AbortController()
-      const timer = setTimeout(() => ctrl.abort(), 8000)
+      // Wider than the server's own budget, so the client never gives up on a call the server
+      // is still making. The button reads "Reading…" for the duration, which is the honest
+      // trade: the free tier is slow and unpredictable, and hiding that behind an early abort
+      // means paying for an answer and discarding it.
+      const timer = setTimeout(() => ctrl.abort(), 16000)
       const res = await fetch('/api/parse-query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
