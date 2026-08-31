@@ -10,6 +10,7 @@ import { parsePriceToCents, formatPriceFull } from '@/lib/format'
 import { matchAssetToBuyer } from '@/lib/matching'
 import { AssetCard } from '@/components/AssetCard'
 import { AssetFilters } from '@/components/AssetFilters'
+import { Pagination } from '@/components/Pagination'
 import { TopNav } from '@/components/TopNav'
 import type { Asset, BuyerProfile } from '@/lib/types'
 
@@ -165,6 +166,29 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
       : null)
   const rows = comparator ? [...scored].sort(comparator) : scored
 
+  // Paged, because the card is deliberately a full specification and thirty of them stacked is
+  // about thirty thousand pixels of scrolling. The reference site holds 137 listings and pages
+  // them for the same reason; the answer is fewer cards at a time, not a smaller card.
+  const PER_PAGE = 8
+  const pages = Math.max(1, Math.ceil(rows.length / PER_PAGE))
+  // Clamped rather than trusted: ?page=0 and ?page=999 both arrive from a URL bar.
+  const page = Math.min(pages, Math.max(1, Number(str(sp.page)) || 1))
+  const from = (page - 1) * PER_PAGE
+  const pageRows = rows.slice(from, from + PER_PAGE)
+
+  // Every other filter is preserved, so page three of a filtered search is a link you can send.
+  const hrefFor = (n: number) => {
+    const q = new URLSearchParams()
+    for (const [k, v] of Object.entries(sp)) {
+      if (k === 'page') continue
+      const one = Array.isArray(v) ? v[0] : v
+      if (one) q.set(k, one)
+    }
+    if (n > 1) q.set('page', String(n))
+    const qs = q.toString()
+    return qs ? `/assets?${qs}` : '/assets'
+  }
+
   const sortedByFit = comparator !== null && !SORTS[sort]
 
   return (
@@ -249,7 +273,15 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
         {/* The filters are plain GET forms, so a filter change is a navigation and the count
             is the only thing that reports what happened. aria-live makes it report to everyone. */}
         <p aria-live="polite" className="mb-3 text-sm text-faint">
-          {t('assets.count', { shown: rows.length, total: all.length })}
+          {/* One sentence, not two. "29 of 29 listings · Showing 1-8 of 29" said the same number
+              three times. */}
+          {pages > 1
+            ? t('assets.showing', {
+                from: from + 1,
+                to: Math.min(from + PER_PAGE, rows.length),
+                shown: rows.length,
+              })
+            : t('assets.count', { shown: rows.length, total: all.length })}
           {' · '}
           {sortedByFit && rows.some((r) => r.score !== undefined)
             ? t('assets.byFit')
@@ -263,7 +295,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
         </p>
 
         <div className="grid gap-4">
-          {rows.map(({ a, score }, i) => (
+          {pageRows.map(({ a, score }, i) => (
             <div key={a.id} className="rise" style={{ animationDelay: `${Math.min(i, 6) * 60}ms` }}>
             <AssetCard
               t={t}
@@ -293,6 +325,8 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
             </div>
           )}
         </div>
+
+        <Pagination page={page} pages={pages} hrefFor={hrefFor} t={t} />
       </main>
     </>
   )

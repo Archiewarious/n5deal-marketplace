@@ -39,7 +39,7 @@
   --color-emi-bg: var(--emi-bg);
   --color-crypto: var(--crypto);
   --color-crypto-bg: var(--crypto-bg);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-sans-face), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-plex), ui-monospace, "SFMono-Regular", "Cascadia Mono", monospace;
 }
 

@@ -40,9 +40,12 @@ const ROLES: Role[] = [
     can: ['login.sellerCan1', 'login.sellerCan2', 'login.sellerCan3'],
     tone: 'seller',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-        <rect x="3" y="7" width="18" height="13" rx="2" />
-        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18" />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        {/* A certificate with a seal. What a seller actually holds is a licence. */}
+        <path d="M19 12.5V4.5a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h5" />
+        <path d="M8.5 8h7M8.5 11.5h5" />
+        <circle cx="17" cy="16.5" r="3" />
+        <path d="M15.4 19l-.4 2.5 2-1 2 1-.4-2.5" />
       </svg>
     ),
   },
@@ -55,10 +58,11 @@ const ROLES: Role[] = [
     can: ['login.buyerCan1', 'login.buyerCan2', 'login.buyerCan3'],
     tone: 'buyer',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-        <path d="M3 5h2l2.6 10.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6" />
-        <circle cx="10" cy="20" r="1.2" />
-        <circle cx="18" cy="20" r="1.2" />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        {/* A mandate is a brief you hunt against, so: a target, not a basket. */}
+        <circle cx="11.5" cy="12.5" r="7.5" />
+        <circle cx="11.5" cy="12.5" r="3.5" />
+        <path d="M11.5 12.5 20 4M16.5 4h3.5v3.5" />
       </svg>
     ),
   },
@@ -71,9 +75,9 @@ const ROLES: Role[] = [
     can: ['login.managerCan1', 'login.managerCan2', 'login.managerCan3'],
     tone: 'manager',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-        <path d="M12 3l7.5 3v5.2c0 4.4-3 8.4-7.5 9.8-4.5-1.4-7.5-5.4-7.5-9.8V6z" />
-        <path d="M9.2 12.2l2 2 3.6-3.9" />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M12 3.2l7.2 2.6v5.3c0 4.3-2.9 8.2-7.2 9.7-4.3-1.5-7.2-5.4-7.2-9.7V5.8z" />
+        <path d="M9.2 12.1l2.1 2.1 3.6-3.9" />
       </svg>
     ),
   },

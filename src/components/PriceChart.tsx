@@ -88,7 +88,10 @@ export function PriceChart({
             />
           ))}
 
-          <div className="absolute inset-0 flex items-end gap-[3px]">
+          {/* Capped width, and centred when the set is small. With four peers each bar was a
+              quarter of the panel — three slabs, not a distribution. A bar wider than about
+              40px stops reading as a data point and starts reading as a block. */}
+          <div className="absolute inset-0 flex items-end justify-center gap-[3px]">
             {sorted.map((c, i) => {
               const isThis = !markedOne && c === priceCents
               if (isThis) markedOne = true
@@ -99,10 +102,15 @@ export function PriceChart({
                   className={`grow min-w-0 flex-1 rounded-t-sm ${
                     isThis ? 'bg-accent-text' : 'bg-elevated'
                   }`}
+                  data-bar
                   // The distribution draws itself left to right, so the eye follows the shape
                   // rather than arriving at it. Capped, or a wide set would still be growing
                   // after the reader has moved on.
-                  style={{ height: `${height(c)}%`, animationDelay: `${Math.min(i, 24) * 22}ms` }}
+                  style={{
+                    height: `${height(c)}%`,
+                    maxWidth: '40px',
+                    animationDelay: `${Math.min(i, 24) * 22}ms`,
+                  }}
                 />
               )
             })}

@@ -476,6 +476,11 @@ const en: Dict = {
   'app.loading': 'Loading',
   'meta.description': 'Banking, EMI, payment and crypto entities for sale, matched to buyer mandates. A working prototype built on Next.js and Supabase, with every role boundary enforced in the database.',
   'meta.default': 'N5Deal — marketplace for licensed financial assets',
+  // second pass: strings the first sweep found without a key
+  'page.label': 'Pagination',
+  'page.previous': 'Previous',
+  'page.next': 'Next',
+  'assets.showing': 'Showing {from}–{to} of {shown} listings',
 }
 
 const uk: Dict = {
@@ -897,6 +902,10 @@ const uk: Dict = {
   'app.loading': 'Завантаження',
   'meta.description': 'Банківські, EMI, платіжні та крипто-компанії на продаж, зіставлені з мандатами покупців. Робочий прототип на Next.js і Supabase, де кожну межу ролі забезпечує база даних.',
   'meta.default': 'N5Deal — маркетплейс ліцензованих фінансових активів',
+  'page.label': 'Сторінки',
+  'page.previous': 'Назад',
+  'page.next': 'Далі',
+  'assets.showing': 'Показано {from}–{to} з {shown} оголошень',
 }
 
 const ru: Dict = {
@@ -1318,6 +1327,10 @@ const ru: Dict = {
   'app.loading': 'Загрузка',
   'meta.description': 'Банковские, EMI, платёжные и крипто-компании на продажу, сопоставленные с мандатами покупателей. Рабочий прототип на Next.js и Supabase, где каждую границу роли обеспечивает база данных.',
   'meta.default': 'N5Deal — маркетплейс лицензированных финансовых активов',
+  'page.label': 'Страницы',
+  'page.previous': 'Назад',
+  'page.next': 'Дальше',
+  'assets.showing': 'Показано {from}–{to} из {shown} объявлений',
 }
 
 const DICT: Record<Locale, Dict> = { en, uk, ru }

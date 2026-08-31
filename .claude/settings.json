@@ -1,0 +1,70 @@
+{
+  "$comment": [
+    "Командні хуки проєкту (комітяться в git, на відміну від settings.local.json).",
+    "Мета — механічні бар'єри замість дисципліни агента: правило в CLAUDE.md вмирає",
+    "через 20 викликів інструментів, хук не вмирає. Заведено 13.08.2026 після виміру:",
+    "у 40 власних правках скептичний прогін знайшов 17 регресій при зелених тестах.",
+    "Кожен хук safe-by-default: будь-яка внутрішня помилка → exit 0, роботу не валить."
+  ],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "$comment": "Read вибіркою (limit/offset) → сказати, скільки лишилось непрочитаним і скільки там ⚠️. Головний механізм помилок за словами власника.",
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/warn-partial-read.js\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "$comment": "Пара до require-design-skill: ставить мітку сесії, коли відкрито скіл дизайну.",
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/mark-design-skill.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "$comment": "Перед правкою файла показати його ⚠️-коментарі: греп по імені символа їх не дістає, а причина «чому не можна робити очевидне» лежить саме там.",
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/show-file-warnings.js\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "$comment": "Блокувати git-команди, що стирають незакомічене (інцидент 13.08: git checkout -- стер вісім правок). Пропускає, якщо дерево чисте.",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-destructive-git.js\"",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "$comment": "Перед правкою UI-файла нагадати про методику дизайну, якщо скіл у цій сесії не відкривали. Заведено 23.08.2026 після питання власника «як зробити, щоб ти цим завжди користувався» — скіли лежали на місці й не використовувались, редизайн вийшов на чотири кола.",
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/require-design-skill.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
