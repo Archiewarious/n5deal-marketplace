@@ -17,16 +17,21 @@ cp .env.example .env.local   # then fill in the two Supabase values
 npm run dev
 ```
 
-The app expects two variables:
+Two variables are required and one is optional:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+GEMINI_API_KEY=...        # optional
 ```
+
+Without `GEMINI_API_KEY` the app runs completely: the search box falls back to its
+deterministic parser and the "Check before publishing" button does not appear. Nothing else
+changes, and that is deliberate — see *Where a model earns its keep* below.
 
 To recreate the database from scratch, run the four SQL files in order in the Supabase SQL
 editor: `supabase/01_schema.sql` builds the tables, enums, indexes and RLS policies;
-`supabase/02_seed.sql` creates six demo accounts, sixteen listings and one conversation;
+`supabase/02_seed.sql` creates six demo accounts, thirty listings and one conversation;
 `supabase/03_hardening.sql` closes the holes an audit found in the first file — it is not
 optional, and it explains each one; `supabase/04_public_stats.sql` adds the one function an
 anonymous visitor may call, so the landing page can say how big the platform is without any
@@ -39,8 +44,8 @@ there is nothing to type.
 
 | Account | Role | Why it is worth opening |
 |---|---|---|
-| `seller.nordic@n5demo.com` | Seller | Owns eight listings, one of them a draft only they can see |
-| `seller.atlas@n5demo.com` | Seller | Owns the rest, including a listing a manager suspended |
+| `seller.nordic@n5demo.com` | Seller | Owns 17 listings, one a draft only they can see and one a manager removed |
+| `seller.atlas@n5demo.com` | Seller | Owns the other 16, including one a manager suspended |
 | `buyer.harbour@n5demo.com` | Buyer | Has a mandate, so the catalogue is sorted by fit |
 | `buyer.meridian@n5demo.com` | Buyer | A different mandate — the same catalogue ranks differently |
 | `buyer.solace@n5demo.com` | Buyer | **Suspended.** Sees nothing and can send nothing |
@@ -171,24 +176,106 @@ that a revoked session stops being accepted within the access token's lifetime r
 instantly, which does not weaken data access, because PostgREST validates only signature and
 expiry anyway. Role changes still apply immediately, since RLS reads `profiles.role` live.
 
-### Matching is rules, not a model
+### Where a model earns its keep, and where it does not
 
-`src/lib/matching.ts` scores a listing against a buyer's mandate on three axes — sector,
-jurisdiction, ticket range — and returns the reasons alongside the number, because a buyer
-will not act on a percentage they cannot check.
+Two of the three places language shows up here are answered by rules, and one is answered by a
+model. The split is not a preference, it is about what each is good for.
 
-The obvious alternative is to send both to an LLM and ask whether they fit. It demos well and
-fails as a product: it needs an API key the reviewer does not have, costs money per row, is
-non-deterministic, and cannot be unit tested. Every input here is already structured, so the
-comparison is arithmetic, not language.
+**Matching is arithmetic.** `src/lib/matching.ts` scores a listing against a buyer's mandate on
+three axes — sector, jurisdiction, ticket range — and returns the reasons alongside the number,
+because a buyer will not act on a percentage they cannot check. Both sides are already
+structured, so there is no language to understand: sending them to a model would make a
+deterministic, unit-testable comparison non-deterministic, per-row expensive, and impossible to
+assert on.
 
-The free-text search box (`src/lib/parseQuery.ts`) is where language genuinely has to be
-understood — `crypto licence in poland under 500k` becomes a sector, a country and a price
-ceiling. It is a deterministic parser for the same reason: a search box that silently fails
-without an API key is worse than no search box. The vocabulary is closed — five sectors, a
-known list of jurisdictions, a few price phrasings — so a parser covers it. If it grew
-open-ended, this is the first function to hand to a model, keeping the parser as the offline
-fallback.
+**The search box is language, so it gets a model.** `src/lib/parseQuery.ts` is a deterministic
+parser over a closed vocabulary and it handles what it was built for — *crypto licence in Poland
+under 500k* becomes a sector, a country and a ceiling. It cannot handle *a bank in Switzerland, I
+have eight figures*, which resolves to sector Bank, jurisdiction Switzerland and a floor of €10M.
+No parser gets from "eight figures" to a price floor.
+
+So `src/lib/ai.ts` sits on top and the parser stays underneath as the floor. **Nothing about the
+model is load-bearing**: with no `GEMINI_API_KEY`, with a timeout, with a quota wall, the box
+falls back to the parser, and a reviewer who cloned this repo without a key should not notice.
+
+The call happens once, when the box is submitted — not inside the catalogue's render. The first
+version did it in the server component and that was wrong in a way worth recording: every render
+of a searched catalogue paid two seconds, including the back button and every filter chip, and a
+render that overran the abort budget lost the answer silently. Measured at 6.8s against a 6s
+timeout, which is the worst of both. Resolving on submit also puts the resolved filters in the
+URL, so a shared search carries what was understood rather than a sentence the next reader's
+model might read differently.
+
+**Everything the model returns is distrusted on the way out.** The prompt is a request; only the
+schema is enforced. Both output guards fired on the first query tried: asked for a label of at
+most eight words it returned a paragraph about MiCA, and asked for at most two distinctive words
+it echoed the entire query, which would then have been applied as a literal substring match and
+returned an empty catalogue. A hostile query can therefore do nothing worse than produce a wrong
+filter — which the "Read as" line shows back, and a Clear link undoes.
+
+**The second feature is validation.** A seller fills in twelve structured fields and a paragraph
+of prose, and the two can disagree — expensively in one direction, because buyers filter on the
+structured half and read the prose half. `reviewListing` reads a draft before it goes live and
+reports contradictions and gaps. On a deliberately inconsistent draft it caught the licence type
+against the description, the sector against the description, and "twelve staff in Tallinn"
+against an empty Employees field; on a consistent one it returns nothing. It is advisory and
+behind a button: nothing blocks a publish, because a validator that refuses to save is one
+people learn to work around.
+
+Two things that version got wrong, both found by running it. It invented a "Passporting" field
+that has never existed on the form, so the prompt now lists the twelve real ones and anything
+else is dropped on the way out. And a failed call returned an empty list, which the interface
+rendered as the green "nothing to flag" — a timeout claiming a listing is clean is worse than no
+check at all, so `null` and `[]` are now different answers and the interface says so
+differently.
+
+The key is server-side only. `src/lib/ai.ts` opens with `import 'server-only'`, which turns a
+leak into a build failure rather than a shipped secret.
+
+### Three languages, in a cookie rather than in the path
+
+English, Ukrainian and Russian. The machinery is one file: a flat record per locale, a lookup
+that falls back to English rather than to a raw key, and `{name}` interpolation. next-intl and
+react-i18next both solve routing, plural rules and lazy namespace loading, none of which is a
+problem at this size.
+
+The locale lives in a cookie, and that is a trade rather than a shortcut. `/uk/assets` is the
+right answer for a public catalogue, because a URL that names its language is shareable and
+indexable — but eleven of twelve routes sit behind auth and the whole site is `robots: noindex`,
+so a path segment buys nothing and costs a rewrite of every internal href. If the catalogue were
+ever made public that flips, and the dictionary would not change for it.
+
+**The listings themselves are not translated.** A licence written up in English by its seller
+stays in English: machine-translating the description of a regulated entity into a language the
+seller cannot check is worse than leaving it alone. That is a content problem, not a UI one.
+
+Eight tests hold the dictionary together, because three hand-written objects are the easiest
+thing here to let rot. They check that every locale defines every key, that none defines one
+English does not, that no translation was left identical to the English by accident, and that
+`{n}` appears in all three versions of a sentence or none — a translation that drops a
+placeholder renders a hole, and one that renames it renders `{count}` to a user.
+
+### Two themes, light by default
+
+N5Deal runs on white and the assignment names visual consistency with them as a criterion, so
+light is the default and it is the one that matches. Dark is not a filter over it: on a light
+ground the accent has to be dark enough to carry text, on a dark ground light enough, so both
+palettes are written out rather than derived.
+
+Three states, not two. Bare `:root` is light; `prefers-color-scheme` flips it for anyone whose
+system is dark and who has not chosen; `[data-theme]` beats both in either direction so the
+toggle always wins. The choice is read back by an inline script before first paint, so someone
+who picked dark never watches the light page flash past.
+
+Every colour is measured against its own ground rather than eyeballed. The smallest labels are
+10px, so 4.5:1 is the floor, and `globals.css` records the ratio beside the values that sit near
+it — `#767d89` was rejected at 3.8:1 before `#666d78` passed at 4.8:1.
+
+The five sectors get five hues, and that is the one place colour is allowed to multiply: category
+is the first thing a buyer narrows on, and across thirty cards a chip you can find by colour
+beats a word you have to read. The colour is never the only carrier — the sector is always named
+in text beside it.
+
 
 ---
 
@@ -231,9 +318,9 @@ looked correct in the editor.
 npm test
 ```
 
-Nineteen tests over the three pure modules — `parseQuery`, `format`, `matching` — run on Node's
-built-in test runner. No framework, no dependency: the whole suite is `node --test`, which is why
-`.ts` extensions appear in the internal imports.
+Twenty-nine tests over four pure modules — `parseQuery`, `format`, `matching` and `i18n` — on
+Node's built-in test runner. No framework, no dependency: the whole suite is `node --test`,
+which is why `.ts` extensions appear in the internal imports.
 
 They cover the parts where being wrong is silent rather than loud: price parsing that must return
 `null` instead of `0` for junk, boundary prices that sit exactly on a mandate's limit, an empty
@@ -270,7 +357,7 @@ using the thing.
 ## What I would do with more time
 
 - **Server-side filtering.** The catalogue filters in memory after a full read. Correct for
-  sixteen listings, wrong for sixteen thousand — the filters map cleanly onto PostgREST query
+  thirty listings, wrong for thirty thousand — the filters map cleanly onto PostgREST query
   parameters, and the pagination helper is already there.
 - **Optimistic updates.** Suspend and publish wait for a round trip and then `router.refresh()`.
   Fine at this scale, visibly slow on a long admin table.

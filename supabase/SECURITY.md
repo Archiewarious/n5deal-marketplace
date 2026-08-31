@@ -97,7 +97,10 @@ Every exploit above returns the row unchanged. The ordinary numbers are untouche
 
 | Role | Listings visible |
 |---|---|
-| Platform manager | 16 |
-| Seller | 15 (published, plus their own draft) |
-| Buyer | 14 |
+| Platform manager | 33 — everything, drafts and removed rows included |
+| Seller | 31 — the 29 published, plus their own draft and their own moderated row |
+| Buyer | 29 |
 | Suspended buyer | 0 |
+
+Counted again after the catalogue grew from 16 listings to 33. The numbers in a security
+write-up are only worth having if they are re-run when the data changes; these were.
