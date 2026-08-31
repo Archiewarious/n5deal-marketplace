@@ -255,6 +255,35 @@ English does not, that no translation was left identical to the English by accid
 `{n}` appears in all three versions of a sentence or none — a translation that drops a
 placeholder renders a hole, and one that renames it renders `{count}` to a user.
 
+### One typeface family, and why the fonts were crooked
+
+Both fonts were loaded with `subsets: ['latin']`. Cyrillic was therefore not in the webfont at
+all, and every Ukrainian and Russian character fell through to the system fallback — so a
+Cyrillic heading rendered in Segoe UI beside Latin words in Inter, on the same line. Two
+typefaces in one sentence, which is what "the fonts look crooked" turned out to be.
+
+The repair is a better answer than the bug required. Every number, asset id and jurisdiction code
+in this interface is set in IBM Plex Mono, and Inter beside it is two unrelated families sharing
+a page: different proportions, a different weight axis, a different Cyrillic. The sans is now
+**IBM Plex Sans**, drawn with that mono as one superfamily, so a label and the figure beside it
+belong to each other.
+
+That pairing is not taste either. `.claude/skills/ui-ux-pro-max` — carried over from another
+project of the owner's — has a table of 57 font pairings, and row 31 is "Financial Trust: IBM
+Plex Sans. Banks, finance, insurance, investment, fintech, enterprise. Excellent for data." The
+skills are committed under `.claude/` with a README saying which one did what.
+
+### The catalogue is paged, eight to a view
+
+The listing card is deliberately a full specification — ten label/value rows, two panels and a
+chart — because that is the shape the reference site uses and it is right for the material.
+Thirty of them stacked is about thirty thousand pixels of scrolling, which is not.
+
+The reference site holds 137 listings and pages them for exactly this reason. The answer is fewer
+cards at a time, not a smaller card. The page number lives in the URL beside the filters, so page
+three of a filtered search is a link you can send, and the component stays a server component
+with no state to fall out of sync. `?page=0` and `?page=999` are clamped rather than trusted.
+
 ### Two themes, light by default
 
 N5Deal runs on white and the assignment names visual consistency with them as a criterion, so
@@ -318,7 +347,7 @@ looked correct in the editor.
 npm test
 ```
 
-Twenty-nine tests over four pure modules — `parseQuery`, `format`, `matching` and `i18n` — on
+Thirty tests over four pure modules — `parseQuery`, `format`, `matching` and `i18n` — on
 Node's built-in test runner. No framework, no dependency: the whole suite is `node --test`,
 which is why `.ts` extensions appear in the internal imports.
 
