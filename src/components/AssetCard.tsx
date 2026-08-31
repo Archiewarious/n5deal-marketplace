@@ -138,7 +138,7 @@ export function AssetCard({
         </span>
 
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-medium leading-tight sm:truncate">
+          <h2 className="heading text-lg font-medium leading-tight sm:truncate">
             {linked ? (
               <Link href={`/assets/${asset.id}`} className="after:absolute after:inset-0">
                 {asset.title}

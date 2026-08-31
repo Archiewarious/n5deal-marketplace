@@ -1,32 +1,37 @@
 import type { Metadata } from 'next'
-import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
+import { Inter, Inter_Tight, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { SiteFooter } from '@/components/SiteFooter'
 import { LocaleProvider } from '@/components/LocaleProvider'
 import { getLocale, getT } from '@/lib/locale'
 
-// One superfamily, for two reasons.
+// Three cuts, two families, one register.
 //
-// The first was a bug: only the 'latin' subset was loaded, so every Ukrainian and Russian
-// character fell out of the webfont and into the system fallback. A Cyrillic heading rendered in
-// Segoe UI beside Latin words in Inter, on the same line — two typefaces in one sentence, which
-// is what "the fonts look crooked" actually was.
+// This went through two wrong answers first, and both are worth keeping in the record.
 //
-// The second is the fix being better than the bug deserved. The interface already sets every
-// number, asset id and jurisdiction code in IBM Plex Mono, and Inter beside it is two unrelated
-// families sharing a page: different proportions, different weight axis, different Cyrillic. IBM
-// Plex Sans is drawn with that mono as one family, so a label and the figure beside it finally
-// belong to each other. It is also the right register for the subject — Plex reads institutional
-// rather than startup, which a marketplace in banking licences should.
-const sans = IBM_Plex_Sans({
-  variable: '--font-sans-face',
+// The original loaded only `subsets: ['latin']`, so Cyrillic was not in the webfont at all and
+// every Ukrainian and Russian character fell through to the system fallback — two typefaces in
+// one sentence, which is what "the fonts look crooked" was.
+//
+// The repair after that was IBM Plex Sans, chosen for superfamily cohesion with the mono. It
+// fixed the fallback and introduced a different problem: Plex Sans is wide in Cyrillic, and at
+// 48px with default tracking a Russian headline sprawls across the measure.
+//
+// The answer is a display cut and a tracking system, not just a family. Inter Tight is Inter
+// drawn narrower for headings; Inter carries the body; the mono keeps the figures. The tracking
+// scale that goes with it lives in globals.css, and it is the half that actually stops the
+// sprawl — a display line wants negative tracking, a 10px uppercase label wants positive.
+const display = Inter_Tight({
+  variable: '--font-display-face',
   subsets: ['latin', 'cyrillic', 'cyrillic-ext'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['500', '600', '700'],
 })
 
-// A licence is a document: a number, a regulator, a two-letter country. The mono is for those —
-// asset ids, jurisdiction codes, money, counts. It is the register this business is written in,
-// and it keeps digits on a grid so a column of prices can be compared by eye.
+const sans = Inter({
+  variable: '--font-sans-face',
+  subsets: ['latin', 'cyrillic', 'cyrillic-ext'],
+})
+
 const mono = IBM_Plex_Mono({
   variable: '--font-plex',
   subsets: ['latin', 'cyrillic'],
@@ -57,7 +62,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
   const locale = await getLocale()
   const t = await getT()
   return (
-    <html lang={locale} className={`${sans.variable} ${mono.variable} h-full`} suppressHydrationWarning>
+    <html lang={locale} className={`${sans.variable} ${display.variable} ${mono.variable} h-full`} suppressHydrationWarning>
       <head>
         {/* Runs before first paint, which is the whole point: read once from the browser and
             stamp the root element, so a visitor who chose dark never sees the light page flash

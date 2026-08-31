@@ -91,7 +91,7 @@ export default async function MessagesPage() {
       <TopNav profile={profile} />
       <main id="content" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
         <p className="text-xs text-faint">{t('messages.crumb')}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-1 heading text-2xl font-semibold">
           {profile.role === 'MANAGER' ? t('messages.titleAll') : t('messages.titleMine')}
         </h1>
         <p className="mb-6 mt-1 text-sm text-muted">

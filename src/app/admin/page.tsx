@@ -95,7 +95,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       <TopNav profile={profile} />
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <p className="text-xs text-faint">{t('admin.crumb')}</p>
-        <h1 className="text-2xl font-semibold tracking-tight">{t('admin.title')}</h1>
+        <h1 className="heading text-2xl font-semibold">{t('admin.title')}</h1>
         <p className="mt-1 text-sm text-muted">{t('admin.lede')}</p>
 
         {/* A moderation console should open with the state of the platform, not with a search box.

@@ -268,22 +268,34 @@ English does not, that no translation was left identical to the English by accid
 `{n}` appears in all three versions of a sentence or none — a translation that drops a
 placeholder renders a hole, and one that renames it renders `{count}` to a user.
 
-### One typeface family, and why the fonts were crooked
+### Three cuts, two families, and a tracking scale
 
-Both fonts were loaded with `subsets: ['latin']`. Cyrillic was therefore not in the webfont at
-all, and every Ukrainian and Russian character fell through to the system fallback — so a
-Cyrillic heading rendered in Segoe UI beside Latin words in Inter, on the same line. Two
-typefaces in one sentence, which is what "the fonts look crooked" turned out to be.
+The typography went through two wrong answers before this one, and both are worth the record.
 
-The repair is a better answer than the bug required. Every number, asset id and jurisdiction code
-in this interface is set in IBM Plex Mono, and Inter beside it is two unrelated families sharing
-a page: different proportions, a different weight axis, a different Cyrillic. The sans is now
-**IBM Plex Sans**, drawn with that mono as one superfamily, so a label and the figure beside it
-belong to each other.
+The original loaded `subsets: ['latin']`, so Cyrillic was not in the webfont at all and every
+Ukrainian and Russian character fell through to the system fallback: a Cyrillic heading in Segoe
+UI beside Latin words in Inter, on the same line. Two typefaces in one sentence.
 
-That pairing is not taste either. `.claude/skills/ui-ux-pro-max` — carried over from another
-project of the owner's — has a table of 57 font pairings, and row 31 is "Financial Trust: IBM
-Plex Sans. Banks, finance, insurance, investment, fintech, enterprise. Excellent for data." The
+The repair after that was IBM Plex Sans, chosen for superfamily cohesion with the mono already
+setting every price and asset id. It fixed the fallback and introduced a different problem —
+Plex Sans is wide in Cyrillic, and at 48px with default letterfit a Russian headline sprawls
+across the measure.
+
+The answer is a display cut and a tracking scale, not just another family:
+
+- **Inter Tight** for display and headings — Inter drawn narrower for exactly this job
+- **Inter** for body
+- **IBM Plex Mono** for every figure, asset id and jurisdiction code
+
+The scale is the half that actually stops the sprawl, and it is in `globals.css` rather than
+scattered across components: `-0.032em` on display, `-0.018em` on headings, and the existing
+positive tracking on 10px uppercase labels, which set solid without it. Cyrillic gets a touch
+more negative at display size through `:root:lang(ru)`, because it sets wider than Latin at the
+same point size.
+
+The values are not taste. They come from the `ui-ux-pro-max` typography table carried over from
+another project of the owner's — the "Modern Dark Cinema" row, which it recommends for fintech
+and dark interfaces, specifying display -1.5, headings -0.5 and uppercase labels +1.2. The
 skills are committed under `.claude/` with a README saying which one did what.
 
 ### The catalogue is paged, eight to a view

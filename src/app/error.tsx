@@ -14,7 +14,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">
           {t('error.eyebrow')}
         </p>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight">{t('error.title')}</h1>
+        <h1 className="mt-4 display text-3xl font-semibold">{t('error.title')}</h1>
         <p className="mt-4 leading-relaxed text-muted">{t('error.body')}</p>
 
         {error.message && (

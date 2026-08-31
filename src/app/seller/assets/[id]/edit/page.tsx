@@ -50,7 +50,7 @@ export default async function EditAssetPage({ params }: { params: Promise<{ id: 
           </Link>{' '}
           / {t('seller.editCrumb')}
         </p>
-        <h1 className="mb-1 mt-1 text-2xl font-semibold tracking-tight">{asset.title}</h1>
+        <h1 className="mb-1 mt-1 heading text-2xl font-semibold">{asset.title}</h1>
         <p className="mb-6 text-sm text-muted">
           {t('form.editLede')}
         </p>

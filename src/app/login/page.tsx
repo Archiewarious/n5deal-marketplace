@@ -70,7 +70,7 @@ export default async function LoginPage() {
             <span className="size-1.5 rounded-full bg-seller" />
             {t('login.about')}
           </Link>
-          <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
+          <h1 className="display mx-auto max-w-3xl text-4xl font-semibold leading-[1.1] sm:text-5xl">
             {t('login.h1a')} <span className="text-accent-text">{t('login.h1accent')}</span>{' '}
             {t('login.h1b')}
           </h1>

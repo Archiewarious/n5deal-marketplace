@@ -17,7 +17,7 @@ export default async function NewAssetPage() {
       <TopNav profile={profile} />
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         <p className="text-xs text-faint">{t('seller.crumb')} / {t('seller.new')}</p>
-        <h1 className="mb-1 text-2xl font-semibold tracking-tight">{t('form.newTitle')}</h1>
+        <h1 className="mb-1 heading text-2xl font-semibold">{t('form.newTitle')}</h1>
         <p className="mb-6 text-sm text-muted">
           {t('form.newLede')}
         </p>

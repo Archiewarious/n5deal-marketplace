@@ -55,7 +55,7 @@ export default async function SellerAssetsPage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-xs text-faint">{t('seller.crumb')}</p>
-            <h1 className="text-2xl font-semibold tracking-tight">{t('seller.title')}</h1>
+            <h1 className="heading text-2xl font-semibold">{t('seller.title')}</h1>
             <p className="mt-1 text-sm text-muted">
               {t('seller.lede')}
             </p>

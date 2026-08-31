@@ -127,7 +127,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 </span>
               )}
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight">{asset.title}</h1>
+            <h1 className="display text-3xl font-semibold">{asset.title}</h1>
             <div className="mt-3">
               <CountryTag country={asset.country} size="lg" />
             </div>

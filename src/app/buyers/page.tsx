@@ -81,7 +81,7 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <div className="mb-6">
           <p className="text-xs text-faint">{t('buyers.crumb')}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t('buyers.title')}</h1>
+          <h1 className="mt-1 heading text-2xl font-semibold">{t('buyers.title')}</h1>
           <p className="mt-1 text-sm text-muted">{t('buyers.lede')}</p>
         </div>
 

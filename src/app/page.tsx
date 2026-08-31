@@ -64,7 +64,7 @@ export default async function Home() {
           </p>
 
           <h1
-            className="rise mt-5 max-w-4xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
+            className="display rise mt-5 max-w-4xl text-4xl font-semibold leading-[1.08] sm:text-5xl lg:text-6xl"
             style={{ animationDelay: '60ms' }}
           >
             {t('home.h1a')}
@@ -151,7 +151,7 @@ export default async function Home() {
         <Reveal><section className="border-b px-4 py-16 sm:px-6">
           <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">{t('home.shelfTitle')}</h2>
+              <h2 className="heading text-2xl font-semibold">{t('home.shelfTitle')}</h2>
               <p className="mt-3 max-w-md leading-relaxed text-muted">
                 {t('home.shelfBody')}
               </p>
@@ -189,7 +189,7 @@ export default async function Home() {
       {/* ── The three sides ─────────────────────────────────────────────────────── */}
       <Reveal><section className="border-b px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-2xl font-semibold tracking-tight">
+          <h2 className="heading text-2xl font-semibold">
             {t('home.sidesTitle')}
           </h2>
           <p className="mt-3 max-w-2xl leading-relaxed text-muted">
@@ -239,7 +239,7 @@ export default async function Home() {
       <Reveal><section className="border-b px-4 py-16 sm:px-6">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 className="heading text-2xl font-semibold">
               {t('home.rulesTitle')}
             </h2>
             <p className="mt-3 leading-relaxed text-muted">
@@ -278,7 +278,7 @@ export default async function Home() {
       <Reveal><section id="roles" className="px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-5xl">
           <div className="mb-9 text-center">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h2 className="display text-2xl font-semibold sm:text-3xl">
               {t('home.pickTitle')}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-muted">

@@ -201,7 +201,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs text-faint">{t('assets.crumb')}</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t('assets.title')}</h1>
+            <h1 className="mt-1 heading text-2xl font-semibold">{t('assets.title')}</h1>
             <p className="mt-1 text-sm text-muted">
               {t('assets.lede', { n: countries.length })}
             </p>

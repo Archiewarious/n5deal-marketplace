@@ -40,6 +40,7 @@
   --color-crypto: var(--crypto);
   --color-crypto-bg: var(--crypto-bg);
   --font-sans: var(--font-sans-face), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-display-face), var(--font-sans-face), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex), ui-monospace, "SFMono-Regular", "Cascadia Mono", monospace;
 }
 
@@ -270,6 +271,34 @@
   *::after {
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── The tracking scale ──────────────────────────────────────────────────────
+   The half of the typography that actually stops a headline sprawling. A face is drawn for one
+   size and used at many, so the letterfit has to be corrected per size rather than left at the
+   default: a 48px display line wants its letters pulled together, and a 10px uppercase label
+   wants them pushed apart or it sets solid.
+
+   Values from the ui-ux-pro-max typography table, the "Modern Dark Cinema" row it recommends
+   for fintech and dark interfaces: display -1.5, headings -0.5, uppercase labels +1.2,
+   converted to em so they hold at every size.
+
+   The display class also swaps in Inter Tight, which is Inter drawn narrower for exactly this
+   job. Everything else stays on Inter. */
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.032em;
+}
+
+.heading {
+  font-family: var(--font-display);
+  letter-spacing: -0.018em;
+}
+
+/* Cyrillic sets wider than Latin at the same size, and a display line is where that shows. */
+:root:lang(uk) .display,
+:root:lang(ru) .display {
+  letter-spacing: -0.038em;
 }
 
 * {
