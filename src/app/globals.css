@@ -23,6 +23,12 @@
   --color-warn-bg: var(--warn-bg);
   --color-danger: var(--danger);
   --color-danger-bg: var(--danger-bg);
+  --color-seller: var(--seller);
+  --color-seller-bg: var(--seller-bg);
+  --color-buyer: var(--buyer);
+  --color-buyer-bg: var(--buyer-bg);
+  --color-manager: var(--manager);
+  --color-manager-bg: var(--manager-bg);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
@@ -56,6 +62,46 @@
   --warn-bg: rgba(251, 191, 36, 0.13);
   --danger: #fb7185;
   --danger-bg: rgba(251, 113, 133, 0.13);
+
+  /* N5Deal colour-codes the three sides of a deal in its own navigation — seller #059669,
+     buyer #383bfe, partner #6a1b9a — so a visitor knows which half of the marketplace they
+     are looking at before reading a word. The same three hues are carried through here,
+     lifted for a dark ground, and they mean the same thing everywhere: the role chip in the
+     header, the entry cards, the accent on a role's own screens. */
+  --seller: #34d399;
+  --seller-bg: rgba(52, 211, 153, 0.12);
+  --buyer: #7c7fff;
+  --buyer-bg: rgba(124, 127, 255, 0.14);
+  --manager: #c084fc;
+  --manager-bg: rgba(192, 132, 252, 0.14);
+}
+
+/* Entrance choreography. One keyframe, applied with a per-item delay, so a page assembles
+   itself in the order it should be read instead of appearing all at once. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 * {

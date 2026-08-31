@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { formatPriceShort, formatDate } from '@/lib/format'
 import { countryFlag } from '@/lib/flags'
+import { PriceContext } from './PriceContext'
 import type { Asset } from '@/lib/types'
 
 // The specification reads as a ledger, one fact per line, the way N5Deal presents a
@@ -44,10 +45,16 @@ export function AssetCard({
   asset,
   matchScore,
   showStatus = false,
+  peersCents = [],
+  peerLabel = 'Price against comparable listings',
 }: {
   asset: Asset
   matchScore?: number
   showStatus?: boolean
+  /** Asking prices this listing is compared against. */
+  peersCents?: number[]
+  /** What that comparison set is, in words. */
+  peerLabel?: string
 }) {
   return (
     <article className="rounded-xl border bg-surface p-5">
@@ -104,6 +111,16 @@ export function AssetCard({
         <Row label="Year of issue" value={asset.year_of_issue} />
         <Row label="Regulatory" value={asset.regulator} />
       </div>
+
+      {peersCents.length > 0 && (
+        <div className="mb-4">
+          <PriceContext
+            priceCents={asset.asking_price_cents}
+            peersCents={peersCents}
+            label={peerLabel}
+          />
+        </div>
+      )}
 
       {asset.included_activities.length > 0 && (
         <div className="mb-4 rounded-lg border border-dashed p-3">
