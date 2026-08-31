@@ -87,7 +87,8 @@ delete from assets
  where title in (
    'AUDIT PROBE delete me',
    'ZZ probe row (audit artefact) — safe to delete in SQL editor',
-   'Audit probe (hole #1), kept as evidence'
+   'Audit probe (hole #1), kept as evidence',
+   'PROBE validated-on-insert'
  );
 
 -- After this runs, the honest counts are: manager 31, each seller 30, buyer 29, suspended 0.
