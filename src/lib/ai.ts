@@ -224,9 +224,18 @@ export async function reviewListing(listing: {
   employees: string
   price: string
   included_activities: string
-}): Promise<ListingNote[]> {
+}): Promise<ListingNote[] | null> {
   const cacheKey = `r:${JSON.stringify(listing)}`
   if (cache.has(cacheKey)) return cache.get(cacheKey) as ListingNote[]
+
+  // The only fields the form actually has. A note against anything else is unactionable — the
+  // seller has no control to fix it — and the model invented one on the second listing tested,
+  // reporting a missing "Passporting" field that has never existed.
+  const FIELDS = [
+    'Title', 'Description', 'Country', 'Sector', 'Type of licence', 'Regulator',
+    'Included activities', 'Asset type', 'Business status', 'Year of issue', 'Employees',
+    'Asking price',
+  ]
 
   const out = await ask<{ notes: ListingNote[] }>(
     `You are checking a draft listing on a marketplace for licensed financial entities, before it
@@ -235,19 +244,41 @@ goes live. Report only what is wrong or missing in a way that would cost the sel
 Listing:
 ${JSON.stringify(listing, null, 1)}
 
+The form has exactly these fields and no others:
+Title, Description, Country, Sector, Type of licence, Regulator, Included activities,
+Asset type, Business status, Year of issue, Employees, Asking price.
+
 Report two kinds of thing and nothing else:
 - "contradiction": the description says something the structured fields disagree with. Quote both.
-- "gap": a fact the description states that a structured field was left empty for, so buyers
-  filtering on that field will never see this listing.
+- "gap": one of the fields listed above is empty, and the description states the fact it wants.
+
+"field" MUST be one of the field names listed above, spelled exactly as written there. If the
+thing you want to report does not belong to one of those fields, do not report it — there is no
+form control for it, so the seller cannot act on it. In particular there is no field for
+passporting, for banking relationships, or for licence scope beyond "Included activities".
 
 Do not comment on style, wording, length or price level. Do not invent facts about the entity.
-Do not report a field as missing if the description does not mention it either — an empty
+Do not report a field as missing if the description does not mention it either: an empty
 Employees field on a licence-only shell is normal, not a gap.
-If nothing qualifies, return an empty list. Each note is one sentence, addressed to the seller.
-"field" is the form label it concerns, e.g. "Sector", "Employees", "Type of licence".`,
+If nothing qualifies, return an empty list — that is the expected answer for a good listing.
+Each note is one sentence, addressed to the seller.`,
     REVIEW_SCHEMA,
-    10000,
+    // Longer than the search budget on purpose. This one is behind an explicit button with a
+    // pending state, so the person asking for it is waiting deliberately; the search box is not,
+    // and must never be made to wait this long.
+    //
+    // The number is set by measurement rather than by taste, and the measurement is ugly: the
+    // same request came back in 3s, in 11s and in 43s on the free tier. There is no budget that
+    // makes that predictable, so this is set past the worst observed and the interface is built
+    // to survive the timeout rather than to hide it.
+    45000,
   )
 
-  return remember(cacheKey, out?.notes ?? [])
+  // null and [] are different answers and the interface says so differently: "nothing to flag"
+  // is a result, and it must never be shown because a call timed out.
+  if (!out) return null
+  const kept = (out.notes ?? []).filter((n) =>
+    FIELDS.some((f) => f.toLowerCase() === n.field.trim().toLowerCase()),
+  )
+  return remember(cacheKey, kept)
 }

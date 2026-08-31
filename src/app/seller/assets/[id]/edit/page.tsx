@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/session'
 import { TopNav } from '@/components/TopNav'
 import { AssetForm } from '@/components/AssetForm'
+import { aiEnabled } from '@/lib/ai'
 import type { Asset } from '@/lib/types'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -66,7 +67,7 @@ export default async function EditAssetPage({ params }: { params: Promise<{ id: 
             listing. Only they can put it back on the market.
           </p>
         ) : (
-          <AssetForm sellerId={profile.id} asset={asset} />
+          <AssetForm sellerId={profile.id} asset={asset} aiAvailable={aiEnabled()} />
         )}
       </main>
     </>

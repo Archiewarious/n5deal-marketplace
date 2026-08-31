@@ -102,11 +102,24 @@ function fromAsset(a: Asset): Values {
   }
 }
 
-export function AssetForm({ sellerId, asset }: { sellerId: string; asset?: Asset }) {
+type Note = { field: string; severity: 'contradiction' | 'gap'; note: string }
+
+export function AssetForm({
+  sellerId,
+  asset,
+  aiAvailable = false,
+}: {
+  sellerId: string
+  asset?: Asset
+  aiAvailable?: boolean
+}) {
   const router = useRouter()
   const [v, setV] = useState<Values>(asset ? fromAsset(asset) : BLANK)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [checking, setChecking] = useState(false)
+  // undefined: not asked. null: asked and the check could not run. [] : asked, nothing to flag.
+  const [notes, setNotes] = useState<Note[] | null | undefined>(undefined)
 
   const set = <K extends keyof Values>(k: K) => (e: { target: { value: string } }) =>
     setV((prev) => ({ ...prev, [k]: e.target.value }))
@@ -120,6 +133,27 @@ export function AssetForm({ sellerId, asset }: { sellerId: string; asset?: Asset
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
+
+  // A second read of the draft before it goes live. Deliberately a button rather than something
+  // that fires on every keystroke: it costs a model call, and a validator that interrupts while
+  // you are still typing is a validator people learn to ignore.
+  async function check() {
+    setChecking(true)
+    setNotes(undefined)
+    try {
+      const res = await fetch('/api/review-listing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(v),
+      })
+      const out = await res.json()
+      setNotes(out?.ok ? (out.notes as Note[]) : null)
+    } catch {
+      setNotes(null)
+    } finally {
+      setChecking(false)
+    }
+  }
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -352,13 +386,67 @@ export function AssetForm({ sellerId, asset }: { sellerId: string; asset?: Asset
           </p>
         )}
 
-        <div className="flex items-center gap-3">
+        {notes === null && (
+          <p role="status" className="rounded-xl border px-5 py-4 text-sm text-muted">
+            The check could not run just now — it is rate limited on a free key. Publishing is
+            unaffected.
+          </p>
+        )}
+
+        {notes !== undefined && notes !== null && (
+          <section
+            role="status"
+            className={`rounded-xl border p-5 ${
+              notes.length === 0 ? 'border-ok/40 bg-ok-bg' : 'border-warn/40 bg-warn-bg'
+            }`}
+          >
+            {notes.length === 0 ? (
+              <p className="text-sm text-ok">
+                Nothing to flag: the description and the fields agree.
+              </p>
+            ) : (
+              <>
+                <p className="mb-3 text-sm text-warn">
+                  {notes.length === 1 ? 'One thing' : `${notes.length} things`} worth a look
+                  before this goes live. None of it blocks publishing.
+                </p>
+                <ul className="grid gap-2">
+                  {notes.map((n, i) => (
+                    <li key={i} className="rounded-lg border bg-surface px-3 py-2 text-sm">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-faint">
+                        {n.field}
+                      </span>
+                      <span className="ml-2 text-muted">{n.note}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
           <button
             disabled={busy}
             className="rounded-full bg-accent px-6 py-2 text-sm font-medium text-accent-fg transition hover:opacity-90 disabled:opacity-50"
           >
             {busy ? 'Saving…' : asset ? 'Save changes' : 'Publish listing'}
           </button>
+          {aiAvailable && (
+            <button
+              type="button"
+              onClick={check}
+              disabled={checking || !v.title || !v.description}
+              title={
+                !v.title || !v.description
+                  ? 'Needs a title and a description to check against.'
+                  : undefined
+              }
+              className="rounded-full border px-5 py-2 text-sm text-muted transition hover:border-accent-text hover:text-accent-text disabled:opacity-50"
+            >
+              {checking ? 'Reading the draft…' : 'Check before publishing'}
+            </button>
+          )}
           <a
             href={asset ? `/assets/${asset.id}` : '/seller/assets'}
             className="text-sm text-muted transition hover:text-fg"

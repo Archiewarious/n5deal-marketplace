@@ -1,6 +1,7 @@
 import { requireRole } from '@/lib/session'
 import { TopNav } from '@/components/TopNav'
 import { AssetForm } from '@/components/AssetForm'
+import { aiEnabled } from '@/lib/ai'
 
 export const metadata = { title: 'Publish an asset' }
 
@@ -23,7 +24,7 @@ export default async function NewAssetPage() {
             restore access — your existing listings are kept.
           </p>
         ) : (
-          <AssetForm sellerId={profile.id} />
+          <AssetForm sellerId={profile.id} aiAvailable={aiEnabled()} />
         )}
       </main>
     </>
