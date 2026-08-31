@@ -114,7 +114,9 @@ export default async function SellerAssetsPage() {
                       <span className="hidden lg:inline">{a.country}</span>
                     </span>
                   </td>
-                  <td className="px-4 py-3">{formatPriceShort(a.asking_price_cents)}</td>
+                  <td className="px-4 py-3 font-mono tabular-nums">
+                    {formatPriceShort(a.asking_price_cents)}
+                  </td>
                   <td className="px-4 py-3 text-muted">{a.views}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-[10px] ${STATE_STYLE[a.status]}`}>
@@ -122,7 +124,15 @@ export default async function SellerAssetsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <ListingStatusControl assetId={a.id} status={a.status} owner />
+                    <span className="inline-flex items-center gap-2">
+                      <Link
+                        href={`/seller/assets/${a.id}/edit`}
+                        className="rounded-full border px-3 py-1 text-xs text-muted transition hover:border-accent-text hover:text-accent-text"
+                      >
+                        Edit
+                      </Link>
+                      <ListingStatusControl assetId={a.id} status={a.status} owner />
+                    </span>
                   </td>
                 </tr>
               ))}

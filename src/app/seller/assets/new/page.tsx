@@ -1,6 +1,6 @@
 import { requireRole } from '@/lib/session'
 import { TopNav } from '@/components/TopNav'
-import { NewAssetForm } from '@/components/NewAssetForm'
+import { AssetForm } from '@/components/AssetForm'
 
 export const metadata = { title: 'Publish an asset' }
 
@@ -9,9 +9,9 @@ export default async function NewAssetPage() {
   return (
     <>
       <TopNav profile={profile} />
-      <main id="content" className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
+      <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         <p className="text-xs text-faint">N5Deal / My listings / New</p>
-        <h1 className="mb-1 text-xl font-semibold">Publish an asset</h1>
+        <h1 className="mb-1 text-2xl font-semibold tracking-tight">Publish an asset</h1>
         <p className="mb-6 text-sm text-muted">
           Buyers filter on these fields, so anything left blank makes the listing harder to find.
         </p>
@@ -23,7 +23,7 @@ export default async function NewAssetPage() {
             restore access — your existing listings are kept.
           </p>
         ) : (
-          <NewAssetForm sellerId={profile.id} />
+          <AssetForm sellerId={profile.id} />
         )}
       </main>
     </>

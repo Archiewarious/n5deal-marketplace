@@ -112,11 +112,21 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
             )}
           </div>
 
-          <div className="rounded-xl border px-5 py-3 text-right">
-            <p className="text-[10px] uppercase tracking-wider text-faint">Asking price</p>
-            <p className="font-mono text-2xl font-semibold tabular-nums">
-              {formatPriceFull(asset.asking_price_cents)}
-            </p>
+          <div className="flex items-center gap-3">
+            {asset.seller_id === profile.id && (
+              <Link
+                href={`/seller/assets/${asset.id}/edit`}
+                className="rounded-full border px-4 py-2 text-sm text-muted transition hover:border-accent-text hover:text-accent-text"
+              >
+                Edit listing
+              </Link>
+            )}
+            <div className="rounded-xl border px-5 py-3 text-right">
+              <p className="text-[10px] uppercase tracking-wider text-faint">Asking price</p>
+              <p className="font-mono text-2xl font-semibold tabular-nums">
+                {formatPriceFull(asset.asking_price_cents)}
+              </p>
+            </div>
           </div>
         </div>
 

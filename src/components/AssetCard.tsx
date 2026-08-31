@@ -47,10 +47,13 @@ export function AssetCard({
   showStatus = false,
   peersCents = [],
   peerLabel = 'Price against comparable listings',
+  linked = true,
 }: {
   asset: Asset
   matchScore?: number
   showStatus?: boolean
+  /** Off for the live preview in the editor, where the row does not exist yet. */
+  linked?: boolean
   /** Asking prices this listing is compared against. */
   peersCents?: number[]
   /** What that comparison set is, in words. */
@@ -68,9 +71,13 @@ export function AssetCard({
         <CountryTag country={asset.country} />
 
         <h2 className="min-w-0 flex-1 truncate text-base font-medium">
-          <Link href={`/assets/${asset.id}`} className="after:absolute after:inset-0">
-            {asset.title}
-          </Link>
+          {linked ? (
+            <Link href={`/assets/${asset.id}`} className="after:absolute after:inset-0">
+              {asset.title}
+            </Link>
+          ) : (
+            asset.title
+          )}
         </h2>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -144,12 +151,14 @@ export function AssetCard({
         <p className="text-xs text-faint">
           {formatDate(asset.created_at)} · {asset.views} views
         </p>
-        <Link
-          href={`/assets/${asset.id}`}
-          className="relative rounded-full bg-accent px-5 py-1.5 text-xs font-medium text-accent-fg transition hover:opacity-90"
-        >
-          View asset
-        </Link>
+        {linked && (
+          <Link
+            href={`/assets/${asset.id}`}
+            className="relative rounded-full bg-accent px-5 py-1.5 text-xs font-medium text-accent-fg transition hover:opacity-90"
+          >
+            View asset
+          </Link>
+        )}
       </footer>
     </article>
   )
