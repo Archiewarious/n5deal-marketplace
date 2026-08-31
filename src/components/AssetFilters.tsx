@@ -53,10 +53,15 @@ export function AssetFilters({
       const out = await res.json()
       if (!out?.ok) return apply({ q: text })
 
-      // The resolved filters replace the sentence rather than joining it. Keeping both would
-      // filter twice: once by the model's reading and again by the parser's reading of the
-      // same words.
+      // The resolved filters replace the SENTENCE, not the controls. Keeping the sentence would
+      // filter twice — once by the model's reading and again by the parser's reading of the same
+      // words — but the asset type and the sort order are things the reader set deliberately
+      // with a control, the model never returns them, and an earlier version dropped both.
       const next = new URLSearchParams()
+      const keep = params.get('kind')
+      const sort = params.get('sort')
+      if (keep) next.set('kind', keep)
+      if (sort) next.set('sort', sort)
       if (out.sector) next.set('sector', out.sector)
       if (out.country) next.set('country', out.country)
       if (out.maxEur) next.set('max', String(out.maxEur))

@@ -5,7 +5,10 @@
 // One file rather than five. The header bar is part of the skeleton because TopNav is rendered
 // by each page rather than by a layout, so a loading state necessarily replaces it; a bar of
 // the same height in the same place keeps the swap from reading as a flash.
-export default function Loading() {
+import { getT } from '@/lib/locale'
+
+export default async function Loading() {
+  const t = await getT()
   return (
     <>
       <div className="border-b bg-surface">
@@ -23,7 +26,7 @@ export default function Loading() {
       <main
         className="mx-auto w-full max-w-6xl flex-1 animate-pulse px-4 py-8 sm:px-6"
         aria-busy="true"
-        aria-label="Loading"
+        aria-label={t('app.loading')}
       >
         <div className="h-3 w-28 rounded bg-elevated" />
         <div className="mt-3 h-7 w-72 max-w-full rounded bg-elevated" />

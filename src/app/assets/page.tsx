@@ -88,7 +88,14 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   // is submitted (see api/parse-query), and puts the result in the URL — so this render is
   // deterministic, fast, and identical for anyone the link is sent to. `reading` is the label
   // the model produced, carried along so the page can show what was understood.
-  const reading = str(sp.reading)
+  // Capped, and only shown when the query it describes is actually in the URL beside it.
+  // Anyone can craft ?reading=<anything> and have it rendered inside the app's own chrome, and
+  // an unbounded attacker-controlled sentence in a band the product owns is a phishing surface
+  // even when React escapes it. A label with no filters to label is a lie by itself.
+  const hasResolvedFilters = Boolean(
+    str(sp.sector) || str(sp.country) || str(sp.max) || str(sp.min) || str(sp.q),
+  )
+  const reading = hasResolvedFilters ? str(sp.reading).slice(0, 120) : ''
   const q = parsed
 
   const needle = q.text.toLowerCase()
@@ -273,12 +280,16 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
                 {t('assets.emptyTitle')}
                 {all.length > 0 && ` ${t('assets.emptyRest', { n: all.length })}`}
               </p>
-              <Link
-                href="/assets"
-                className="mt-4 inline-block rounded-full border px-5 py-2 text-sm text-accent-text transition hover:border-accent-text"
-              >
-                {t('assets.clearFilters')}
-              </Link>
+              {/* Only when there is something to clear. An empty catalogue that offers to reset
+                  filters nobody set sends the reader looking for a control that is not there. */}
+              {[...Object.keys(sp)].length > 0 && (
+                <Link
+                  href="/assets"
+                  className="mt-4 inline-block rounded-full border px-5 py-2 text-sm text-accent-text transition hover:border-accent-text"
+                >
+                  {t('assets.clearFilters')}
+                </Link>
+              )}
             </div>
           )}
         </div>

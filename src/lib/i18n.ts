@@ -144,7 +144,6 @@ const en: Dict = {
   'login.h1b': 'financial assets',
   'login.lede':
     'Banking, EMI, payment and crypto entities with the paperwork already checked. Pick the side you are on.',
-  'login.sellerCompany': 'Nordic License Partners',
   'login.sellerBlurb': 'You hold licensed entities and want them in front of the right buyers.',
   'login.sellerCan1': 'Publish an asset',
   'login.sellerCan2': 'Browse buyer mandates',
@@ -471,6 +470,12 @@ const en: Dict = {
   'admin.emptyPeople': 'No participant matches this search.',
   'admin.emptyListings': 'No listing matches this search.',
   'admin.clear': 'Clear the filters',
+  // second pass: strings the first sweep found without a key
+  'nav.footerProduct': 'Marketplace links',
+  'nav.footerProject': 'Project links',
+  'app.loading': 'Loading',
+  'meta.description': 'Banking, EMI, payment and crypto entities for sale, matched to buyer mandates. A working prototype built on Next.js and Supabase, with every role boundary enforced in the database.',
+  'meta.default': 'N5Deal — marketplace for licensed financial assets',
 }
 
 const uk: Dict = {
@@ -570,7 +575,6 @@ const uk: Dict = {
   'login.h1b': 'фінансових активів',
   'login.lede':
     'Банківські, EMI, платіжні та крипто-компанії з уже перевіреними документами. Оберіть свою сторону.',
-  'login.sellerCompany': 'Nordic License Partners',
   'login.sellerBlurb':
     'У вас є ліцензовані компанії, і ви хочете показати їх потрібним покупцям.',
   'login.sellerCan1': 'Опублікувати актив',
@@ -888,6 +892,11 @@ const uk: Dict = {
   'admin.emptyPeople': 'Під цей пошук не підходить жоден учасник.',
   'admin.emptyListings': 'Під цей пошук не підходить жодне оголошення.',
   'admin.clear': 'Скинути фільтри',
+  'nav.footerProduct': 'Посилання маркетплейсу',
+  'nav.footerProject': 'Посилання проєкту',
+  'app.loading': 'Завантаження',
+  'meta.description': 'Банківські, EMI, платіжні та крипто-компанії на продаж, зіставлені з мандатами покупців. Робочий прототип на Next.js і Supabase, де кожну межу ролі забезпечує база даних.',
+  'meta.default': 'N5Deal — маркетплейс ліцензованих фінансових активів',
 }
 
 const ru: Dict = {
@@ -987,7 +996,6 @@ const ru: Dict = {
   'login.h1b': 'финансовых активов',
   'login.lede':
     'Банковские, EMI, платёжные и крипто-компании с уже проверенными документами. Выберите свою сторону.',
-  'login.sellerCompany': 'Nordic License Partners',
   'login.sellerBlurb':
     'У вас есть лицензированные компании, и вы хотите показать их нужным покупателям.',
   'login.sellerCan1': 'Опубликовать актив',
@@ -1305,6 +1313,11 @@ const ru: Dict = {
   'admin.emptyPeople': 'Под этот поиск не подходит ни один участник.',
   'admin.emptyListings': 'Под этот поиск не подходит ни одно объявление.',
   'admin.clear': 'Сбросить фильтры',
+  'nav.footerProduct': 'Ссылки маркетплейса',
+  'nav.footerProject': 'Ссылки проекта',
+  'app.loading': 'Загрузка',
+  'meta.description': 'Банковские, EMI, платёжные и крипто-компании на продажу, сопоставленные с мандатами покупателей. Рабочий прототип на Next.js и Supabase, где каждую границу роли обеспечивает база данных.',
+  'meta.default': 'N5Deal — маркетплейс лицензированных финансовых активов',
 }
 
 const DICT: Record<Locale, Dict> = { en, uk, ru }

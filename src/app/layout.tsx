@@ -16,24 +16,24 @@ const mono = IBM_Plex_Mono({
   weight: ['400', '500'],
 })
 
-export const metadata: Metadata = {
+// A function rather than a constant, because the default title and the description are the two
+// strings a link preview shows and they were the only ones left in English in every locale.
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT()
+  return {
   // A template so every route names itself in the tab and in a shared link, instead of nine
   // pages all reading "N5Deal Marketplace".
-  title: {
-    default: 'N5Deal — marketplace for licensed financial assets',
-    template: '%s · N5Deal',
-  },
-  description:
-    'Banking, EMI, payment and crypto entities for sale, matched to buyer mandates. A working prototype built on Next.js and Supabase, with every role boundary enforced in the database.',
-  openGraph: {
-    title: 'N5Deal — marketplace for licensed financial assets',
-    description:
-      'Banking, EMI, payment and crypto entities for sale, matched to buyer mandates.',
-    type: 'website',
-  },
-  // opengraph-image.tsx fills in the image for both cards; this only says which shape to use.
-  twitter: { card: 'summary_large_image' },
-  robots: { index: false, follow: false },
+    title: { default: t('meta.default'), template: '%s · N5Deal' },
+    description: t('meta.description'),
+    openGraph: {
+      title: t('meta.default'),
+      description: t('meta.description'),
+      type: 'website',
+    },
+    // opengraph-image.tsx fills in the image for both cards; this only says which shape to use.
+    twitter: { card: 'summary_large_image' },
+    robots: { index: false, follow: false },
+  }
 }
 
 export default async function RootLayout({ children }: LayoutProps<'/'>) {

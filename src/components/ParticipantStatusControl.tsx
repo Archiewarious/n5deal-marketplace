@@ -45,7 +45,10 @@ export function ParticipantStatusControl({
 
   if (pending) {
     return (
-      <span className="inline-flex items-center gap-2 whitespace-nowrap">
+      // The row swaps to a question in place, which a sighted reader sees and a screen reader
+      // is told nothing about. role="alert" is right rather than "status": it is a question
+      // about a destructive action, and it interrupts on purpose.
+      <span role="alert" className="inline-flex items-center gap-2 whitespace-nowrap">
         <span className="text-xs text-muted">{t('status.confirmSuspendAccount')}</span>
         <button
           onClick={toggle}

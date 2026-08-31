@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { aiEnabled, parseQueryWithAI } from '@/lib/ai'
+import { getLocale } from '@/lib/locale'
 
 /**
  * Reads a search box, once, at the moment it is submitted.
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
 
   if (q.trim().length < 3) return NextResponse.json({ ok: false })
 
-  const parsed = await parseQueryWithAI(q, countries)
+  const parsed = await parseQueryWithAI(q, countries, await getLocale())
   if (!parsed) return NextResponse.json({ ok: false })
 
   return NextResponse.json({

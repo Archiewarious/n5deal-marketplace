@@ -14,6 +14,8 @@ import type { ParsedQuery } from './parseQuery'
  * this import makes a build fail loudly rather than shipping it to a browser bundle by accident.
  */
 
+const LANG: Record<string, string> = { en: 'English', uk: 'Ukrainian', ru: 'Russian' }
+
 const MODEL = 'gemini-3.6-flash'
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`
 
@@ -106,11 +108,14 @@ export type AiQuery = ParsedQuery & { reading: string }
 export async function parseQueryWithAI(
   input: string,
   countries: string[],
+  /** The language the page is in. The reading is shown back to the reader, so it has to be. */
+  locale: 'en' | 'uk' | 'ru' = 'en',
 ): Promise<AiQuery | null> {
   const q = input.trim()
   if (q.length < 3) return null
 
-  const cacheKey = `q:${q}`
+  // The locale is part of the key: the same sentence asked in two languages is two answers.
+  const cacheKey = `q:${locale}:${q}`
   if (cache.has(cacheKey)) return cache.get(cacheKey) as AiQuery | null
 
   const out = await ask<{
@@ -124,6 +129,7 @@ export async function parseQueryWithAI(
     `You turn one search box into filters for a marketplace of licensed financial entities.
 
 Query: ${JSON.stringify(q)}
+The query may be written in any language; read it in whatever language it is in.
 
 Sectors that exist: ${SECTORS.join(', ')}
 Jurisdictions that exist: ${countries.join(', ')}
@@ -137,6 +143,9 @@ Rules:
   listing, like "SEPA" or "dormant". Omit it entirely if the filters already cover the query.
   Never echo the query into it, and never put a sector name, a country name or a price in it.
   It is applied as a literal substring match, so a wrong word here returns nothing.
+- "reading" MUST be written in ${LANG[locale]}, because it is shown back to someone reading the
+  page in that language. Everything else you return is a value from the lists above and stays as
+  written there.
 - "reading" is a LABEL, not a sentence: at most eight words, naming the filters you applied.
   Good: "Crypto licences in Poland under €500K". Bad: anything that explains, advises, or
   mentions regulation. It is shown back to the person who typed the query so they can see

@@ -25,7 +25,7 @@ test('no locale defines a key English does not', () => {
 test('no string is left in English by accident', () => {
   // A translation identical to the English is almost always a key someone copied and did not
   // translate. The exceptions are real: a company name, a product name, an acronym.
-  const ALLOWED_IDENTICAL = new Set(['login.sellerCompany', 'lang.label'])
+  const ALLOWED_IDENTICAL = new Set(['lang.label'])
   for (const locale of LOCALES.filter((l) => l !== 'en')) {
     const same = KEYS.filter(
       (k) => DICTS[locale][k] === DICTS.en[k] && !ALLOWED_IDENTICAL.has(k),

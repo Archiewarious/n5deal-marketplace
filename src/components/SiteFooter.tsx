@@ -36,7 +36,7 @@ export async function SiteFooter() {
           </p>
         </div>
 
-        <nav aria-label="Product">
+        <nav aria-label={t('nav.footerProduct')}>
           <p className="text-[10px] uppercase tracking-wider text-faint">{t('footer.marketplace')}</p>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
@@ -64,7 +64,7 @@ export async function SiteFooter() {
           </ul>
         </nav>
 
-        <nav aria-label="Project">
+        <nav aria-label={t('nav.footerProject')}>
           <p className="text-[10px] uppercase tracking-wider text-faint">{t('footer.build')}</p>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
