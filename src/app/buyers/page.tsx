@@ -4,7 +4,8 @@ import { requireRole } from '@/lib/session'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { TopNav } from '@/components/TopNav'
 import { BuyerFilters } from '@/components/BuyerFilters'
-import type { BuyerProfile, Profile } from '@/lib/types'
+import { matchAssetToBuyer } from '@/lib/matching'
+import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 
 export const metadata = { title: 'Buyer mandates' }
@@ -23,6 +24,28 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
   const { data: people, error: peopleError } = await fetchAllRows<Profile>((from, to) =>
     supabase.from('profiles').select('*').eq('role', 'BUYER').range(from, to),
   )
+
+  // A seller opening this page is asking one question: which of these buyers is worth writing
+  // to. The matching function that answers it already runs on the catalogue and on the buyer
+  // detail page; here it runs once per mandate against this seller's own live listings, so the
+  // count on each card is "how many of mine fit yours". A manager has no catalogue of their
+  // own, so they get the directory without the badge rather than a badge reading zero.
+  const { data: myAssets } =
+    profile.role === 'SELLER'
+      ? await fetchAllRows<Asset>((from, to) =>
+          supabase
+            .from('assets')
+            .select('*')
+            .eq('seller_id', profile.id)
+            .eq('status', 'PUBLISHED')
+            .range(from, to),
+        )
+      : { data: [] as Asset[] }
+
+  // 60 is the point at which two of the three axes have to agree. Below it a "match" is one
+  // coincidence, and a badge that fires on every card tells a seller nothing.
+  const fitCount = (m: BuyerProfile) =>
+    myAssets.filter((a) => (matchAssetToBuyer(a, m).score ?? 0) >= 60).length
 
   const byId = new Map(people.map((p) => [p.id, p]))
   const sector = str(sp.sector)
@@ -53,7 +76,7 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <div className="mb-6">
           <p className="text-xs text-faint">N5Deal / Buyers</p>
-          <h1 className="text-xl font-semibold">Buyer mandates</h1>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Buyer mandates</h1>
           <p className="mt-1 text-sm text-muted">
             What each buyer is looking for, so you can approach the right counterparty.
           </p>
@@ -82,11 +105,28 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
                   </h2>
                   <p className="text-sm text-muted">{mandate.headline}</p>
                 </div>
-                <div className="rounded-lg border px-3 py-2 text-right">
-                  <p className="text-[10px] uppercase tracking-wider text-faint">Ticket</p>
-                  <p className="text-sm">
-                    {formatTicket(mandate.ticket_min_eur, mandate.ticket_max_eur)}
-                  </p>
+                <div className="flex items-center gap-3">
+                  {myAssets.length > 0 &&
+                    (() => {
+                      const fits = fitCount(mandate)
+                      return (
+                        <span
+                          className={`rounded-full border px-3 py-1 font-mono text-[11px] ${
+                            fits > 0
+                              ? 'border-accent-text text-accent-text'
+                              : 'text-faint'
+                          }`}
+                        >
+                          {fits} of your {myAssets.length} fit
+                        </span>
+                      )
+                    })()}
+                  <div className="rounded-lg border px-3 py-2 text-right">
+                    <p className="text-[10px] uppercase tracking-wider text-faint">Ticket</p>
+                    <p className="font-mono text-sm tabular-nums">
+                      {formatTicket(mandate.ticket_min_eur, mandate.ticket_max_eur)}
+                    </p>
+                  </div>
                 </div>
               </div>
 

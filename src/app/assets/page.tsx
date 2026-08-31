@@ -12,6 +12,8 @@ import type { Asset, BuyerProfile } from '@/lib/types'
 
 export const metadata = { title: 'All listings' }
 
+type Scored = { a: Asset; score: number | undefined }
+
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
 export default async function AssetsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -106,13 +108,28 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
     mandate = data
   }
 
-  const rows = mandate
-    ? visible
-        .map((a) => ({ a, score: matchAssetToBuyer(a, mandate).score ?? undefined }))
-        // A mandate with no criteria scores null on every listing; those keep their natural
-        // order rather than pretending to be ranked.
-        .sort((x, y) => (y.score ?? -1) - (x.score ?? -1))
+  const scored = mandate
+    ? visible.map((a) => ({ a, score: matchAssetToBuyer(a, mandate).score ?? undefined }))
     : visible.map((a) => ({ a, score: undefined as number | undefined }))
+
+  // The listings arrive newest first from Postgres, so "new" is the absence of a comparator
+  // rather than a comparator of its own. A buyer with a mandate falls through to fit unless
+  // they ask for something else, which is the one case where the default is not the natural
+  // order — a mandate with no criteria scores null on every listing and keeps that order.
+  const sort = str(sp.sort)
+  const SORTS: Record<string, (x: Scored, y: Scored) => number> = {
+    'price-desc': (x, y) => y.a.asking_price_cents - x.a.asking_price_cents,
+    'price-asc': (x, y) => x.a.asking_price_cents - y.a.asking_price_cents,
+    views: (x, y) => y.a.views - x.a.views,
+  }
+  const comparator =
+    SORTS[sort] ??
+    (mandate && sort !== 'new'
+      ? (x: Scored, y: Scored) => (y.score ?? -1) - (x.score ?? -1)
+      : null)
+  const rows = comparator ? [...scored].sort(comparator) : scored
+
+  const sortedByFit = comparator !== null && !SORTS[sort]
 
   return (
     <>
@@ -143,7 +160,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           </div>
         </div>
 
-        <AssetFilters counts={counts} countries={countries} />
+        <AssetFilters counts={counts} countries={countries} canSortByFit={mandate !== null} />
 
         {error ? (
           <p className="mb-4 rounded-lg border border-danger bg-danger-bg px-3 py-2 text-sm text-danger">
@@ -186,7 +203,15 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
             is the only thing that reports what happened. aria-live makes it report to everyone. */}
         <p aria-live="polite" className="mb-3 text-sm text-faint">
           {rows.length} of {all.length} listings
-          {rows.some((r) => r.score !== undefined) && ' · sorted by fit with your mandate'}
+          {sortedByFit && rows.some((r) => r.score !== undefined)
+            ? ' · sorted by fit with your mandate'
+            : sort === 'price-desc'
+              ? ' · most expensive first'
+              : sort === 'price-asc'
+                ? ' · cheapest first'
+                : sort === 'views'
+                  ? ' · most viewed first'
+                  : ' · newest first'}
         </p>
 
         <div className="grid gap-4">

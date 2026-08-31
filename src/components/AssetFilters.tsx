@@ -10,9 +10,12 @@ import { SECTORS } from '@/lib/types'
 export function AssetFilters({
   counts,
   countries,
+  canSortByFit = false,
 }: {
   counts: Record<string, number>
   countries: string[]
+  /** Only a buyer has a mandate to sort against, so only a buyer is offered the option. */
+  canSortByFit?: boolean
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -121,6 +124,21 @@ export function AssetFilters({
           className="w-40 rounded-lg border bg-field px-3 py-1.5 text-sm"
           aria-label="Maximum price"
         />
+
+        <select
+          value={params.get('sort') ?? ''}
+          onChange={(e) => apply({ sort: e.target.value })}
+          className="rounded-lg border bg-field px-3 py-1.5 text-sm"
+          aria-label="Sort order"
+        >
+          {/* A buyer's default is their mandate; everyone else's is newest first. Saying so in
+              the empty option means the select never reads as unset when it is doing something. */}
+          <option value="">{canSortByFit ? 'Best fit with my mandate' : 'Newest first'}</option>
+          {canSortByFit && <option value="new">Newest first</option>}
+          <option value="price-desc">Price, high to low</option>
+          <option value="price-asc">Price, low to high</option>
+          <option value="views">Most viewed</option>
+        </select>
 
         {[...params.keys()].length > 0 && (
           <button
