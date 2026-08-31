@@ -24,11 +24,13 @@ NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-To recreate the database from scratch, run the three SQL files in order in the Supabase SQL
+To recreate the database from scratch, run the four SQL files in order in the Supabase SQL
 editor: `supabase/01_schema.sql` builds the tables, enums, indexes and RLS policies;
-`supabase/02_seed.sql` creates six demo accounts and sixteen listings;
+`supabase/02_seed.sql` creates six demo accounts, sixteen listings and one conversation;
 `supabase/03_hardening.sql` closes the holes an audit found in the first file — it is not
-optional, and it explains each one.
+optional, and it explains each one; `supabase/04_public_stats.sql` adds the one function an
+anonymous visitor may call, so the landing page can say how big the platform is without any
+table being readable without a session.
 
 ### Demo accounts
 
@@ -43,6 +45,26 @@ there is nothing to type.
 | `buyer.meridian@n5demo.com` | Buyer | A different mandate — the same catalogue ranks differently |
 | `buyer.solace@n5demo.com` | Buyer | **Suspended.** Sees nothing and can send nothing |
 | `manager@n5demo.com` | Platform Manager | Sees every listing including drafts, can suspend anyone |
+
+### Where to click
+
+- **/** is public and needs no account. It says what the platform is, and the four figures on it
+  are live — see the note on `platform_stats` below for why an anonymous visitor can read them
+  while the tables stay closed.
+- **/assets** is the catalogue. As a buyer it is ordered by fit with your mandate; the badge on
+  each card says why. Every card plots its own price against comparable listings.
+- **/seller/assets** is a seller's own listings including their draft, with Edit and
+  Publish/Unpublish. The editor renders the buyer's card live beside the form.
+- **/buyers** is the mandate directory. As a seller each card says how many of your own listings
+  clear 60% against that mandate.
+- **/admin** is the moderation console: every participant and every listing, drafts and removed
+  ones included, with suspend and remove behind a confirmation.
+- **/messages** groups messages into conversations with a reply at the end of each. A manager
+  sees the flat log instead, because they are a party to none of them.
+
+The most interesting thing to try is the **suspended buyer**. Sign in as
+`buyer.solace@n5demo.com` and the catalogue is empty — not filtered, empty. The rows never
+leave Postgres.
 
 ---
 
@@ -91,6 +113,23 @@ hole, how it was demonstrated, what closed it, and the numbers after.
 The honest version of the claim above is therefore narrower: access control lives in the
 database, and it took an audit and a set of live exploits to make that true rather than
 aspirational.
+
+### The landing page reads four numbers out of a closed database
+
+The tables are shut to anonymous callers: `03_hardening.sql` narrowed `profiles` and
+`buyer_profiles` after the audit found the participant directory, with email addresses and
+buyer budgets, readable by anyone holding the publishable key. But a marketplace that cannot say
+how big it is has nothing to put on a front page.
+
+So `platform_stats()` returns the counts rather than the rows. It is `security definer`, which
+is the sort of thing that deserves an explicit account of what it can leak: four aggregates over
+published listings and active participants, plus a count per country and per sector. No id, no
+title, no email, no price of any single listing. `set search_path = public` is not decoration on
+a definer function — without it a caller can point `assets` at a table of their own and have the
+owner's rights execute against it.
+
+Verified from a terminal with nothing but the publishable key: the function answers, and
+`profiles`, `assets` and `buyer_profiles` all return `[]`.
 
 ### Money is stored as whole euro cents
 
@@ -235,13 +274,21 @@ using the thing.
   parameters, and the pagination helper is already there.
 - **Optimistic updates.** Suspend and publish wait for a round trip and then `router.refresh()`.
   Fine at this scale, visibly slow on a long admin table.
-- **A real conversation model,** replacing single messages with threads and unread state.
+- **Unread state on messages.** Messages are grouped into conversations with a reply box, but
+  `contact_requests` has no `read_at`, so nothing distinguishes a new message from one already
+  seen. It needs a column plus a policy letting only the recipient set it.
 - **Multi-language support.** Listed as a Plus in the assignment and deliberately skipped: the
   copy is the smaller half, and doing it honestly means locale-aware price and date formatting
   in `src/lib/format.ts` plus a decision about which language a listing itself is written in —
   a content problem rather than a UI one.
-- **Listing edit.** A seller can create and unpublish but not edit; the form exists, only the
-  update path is missing.
-- **Accessibility pass.** Form controls have labels and the demo sign-in buttons now have
-  accessible names (the accessibility tree read four unnamed buttons before). Nothing has yet
-  been through a screen reader or a keyboard-only run.
+- **Accessibility.** There is a skip link, every `<main>` is a landmark, every control has an
+  accessible name, and the strings that appear without a navigation — "Message sent", "Saved",
+  form errors, the catalogue count — announce themselves. Contrast is measured against the
+  ground rather than guessed: the smallest labels are 11px, so 4.5:1 is the floor and
+  `globals.css` records the ratio next to each value. What has NOT happened is a real screen
+  reader run or a keyboard-only pass over every flow.
+
+- **Deleting a listing.** Nothing is ever deleted from this database, by anybody: there is no
+  delete policy on any table. Withdrawal is Unpublish, which takes a listing off the market and
+  keeps the record. That is a deliberate choice for a marketplace in regulated assets rather
+  than a missing feature, but it is worth naming.
