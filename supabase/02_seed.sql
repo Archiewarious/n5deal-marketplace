@@ -133,3 +133,21 @@ begin
      6900000, '{Securities Dealing}', 'SUSPENDED', false, 7);
 end
 $seed$;
+
+-- ── A conversation, so /messages demonstrates something ──────────────────────
+-- An empty inbox shows the empty state and nothing else. This is one thread between a buyer
+-- and a seller about listing #3, which is enough to show the grouping, the direction of each
+-- message, the listing each is attached to, and the reply box at the end of it.
+insert into contact_requests (from_user_id, to_user_id, asset_id, message, created_at) values
+  ('33333333-3333-4333-8333-333333333333', '11111111-1111-4111-8111-111111111111',
+   (select id from assets where public_id = 3),
+   'We are looking at this one seriously. Two questions before we go further: is the SEPA access direct or through a sponsor bank, and has the regulator raised anything in the last two supervisory cycles?',
+   now() - interval '2 days'),
+  ('11111111-1111-4111-8111-111111111111', '33333333-3333-4333-8333-333333333333',
+   (select id from assets where public_id = 3),
+   'Direct, through the Bank of Lithuania settlement system, not sponsored. Nothing open from supervision. Happy to share the last two inspection letters once an NDA is in place.',
+   now() - interval '1 day 20 hours'),
+  ('33333333-3333-4333-8333-333333333333', '11111111-1111-4111-8111-111111111111',
+   (select id from assets where public_id = 3),
+   'That works. Send the NDA to this address and we will turn it around the same day.',
+   now() - interval '1 day 18 hours');
