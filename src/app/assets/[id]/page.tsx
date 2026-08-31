@@ -18,6 +18,19 @@ function Field({ label, value }: { label: string; value: string | number | null 
   )
 }
 
+// A shared listing link should say which listing it is, in the tab and in the preview card.
+// RLS applies here too: a title only comes back for a row this session may read.
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('assets')
+    .select('title')
+    .eq('id', id)
+    .maybeSingle<{ title: string }>()
+  return { title: data?.title ?? 'Listing' }
+}
+
 export default async function AssetPage({ params }: { params: Promise<{ id: string }> }) {
   const profile = await requireProfile()
   const { id } = await params

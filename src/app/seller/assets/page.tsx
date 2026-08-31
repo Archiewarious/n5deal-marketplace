@@ -9,6 +9,8 @@ import type { Asset } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 import { StatStrip } from '@/components/StatStrip'
 
+export const metadata = { title: 'My listings' }
+
 const STATE_STYLE: Record<Asset['status'], string> = {
   PUBLISHED: 'text-ok bg-ok-bg',
   DRAFT: 'text-muted bg-elevated',

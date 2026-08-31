@@ -6,6 +6,8 @@ import { TopNav } from '@/components/TopNav'
 import type { Asset, ContactRequest, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 
+export const metadata = { title: 'Messages' }
+
 export default async function MessagesPage() {
   const profile = await requireProfile()
   const supabase = await createClient()

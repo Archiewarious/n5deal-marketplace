@@ -44,9 +44,14 @@ export async function updateSession(request: NextRequest) {
   const { data: claims } = await supabase.auth.getClaims()
   const user = claims?.claims?.sub ?? null
 
-  const isLoginRoute = request.nextUrl.pathname.startsWith('/login')
+  // The landing page and the role picker are the two surfaces an anonymous visitor is meant to
+  // reach. Everything else needs a session, because everything else reads rows — and the rows
+  // are gated by RLS anyway, which is what actually protects them. This redirect is a
+  // convenience so a signed-out visitor lands somewhere useful instead of on an empty table.
+  const path = request.nextUrl.pathname
+  const isPublicRoute = path === '/' || path.startsWith('/login')
 
-  if (!user && !isLoginRoute) {
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

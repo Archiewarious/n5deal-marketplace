@@ -9,6 +9,17 @@ import { TopNav } from '@/components/TopNav'
 import { ContactForm } from '@/components/ContactForm'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select('company, full_name')
+    .eq('id', id)
+    .maybeSingle<{ company: string | null; full_name: string }>()
+  return { title: data ? (data.company ?? data.full_name) : 'Buyer' }
+}
+
 export default async function BuyerPage({ params }: { params: Promise<{ id: string }> }) {
   const profile = await requireRole('SELLER', 'MANAGER')
   const { id } = await params

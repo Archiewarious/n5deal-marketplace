@@ -4,6 +4,8 @@ import { TopNav } from '@/components/TopNav'
 import { MandateForm } from '@/components/MandateForm'
 import type { BuyerProfile } from '@/lib/types'
 
+export const metadata = { title: 'Your mandate' }
+
 export default async function BuyerProfilePage() {
   const profile = await requireRole('BUYER')
   const supabase = await createClient()

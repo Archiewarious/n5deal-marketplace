@@ -10,6 +10,8 @@ import { AssetFilters } from '@/components/AssetFilters'
 import { TopNav } from '@/components/TopNav'
 import type { Asset, BuyerProfile } from '@/lib/types'
 
+export const metadata = { title: 'All listings' }
+
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
 export default async function AssetsPage({ searchParams }: { searchParams: SearchParams }) {

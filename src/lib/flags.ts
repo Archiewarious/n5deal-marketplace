@@ -24,6 +24,11 @@ const ISO: Record<string, string> = {
   'United States': 'US',
 }
 
+/** The two-letter code itself, for places that set jurisdictions in mono rather than as a flag. */
+export function countryCode(country: string): string {
+  return ISO[country] ?? country.slice(0, 2).toUpperCase()
+}
+
 export function countryFlag(country: string): string {
   const code = ISO[country]
   if (!code) return '🏳'

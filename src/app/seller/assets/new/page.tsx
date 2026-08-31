@@ -2,6 +2,8 @@ import { requireRole } from '@/lib/session'
 import { TopNav } from '@/components/TopNav'
 import { NewAssetForm } from '@/components/NewAssetForm'
 
+export const metadata = { title: 'Publish an asset' }
+
 export default async function NewAssetPage() {
   const profile = await requireRole('SELLER')
   return (

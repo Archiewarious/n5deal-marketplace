@@ -10,6 +10,8 @@ import type { Asset, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 import { StatStrip } from '@/components/StatStrip'
 
+export const metadata = { title: 'Administration' }
+
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
 const STATE_STYLE: Record<Asset['status'], string> = {

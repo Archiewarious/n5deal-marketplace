@@ -7,6 +7,8 @@ import { BuyerFilters } from '@/components/BuyerFilters'
 import type { BuyerProfile, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 
+export const metadata = { title: 'Buyer mandates' }
+
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
 export default async function BuyersPage({ searchParams }: { searchParams: SearchParams }) {
