@@ -238,8 +238,8 @@ using the thing.
 - **A real conversation model,** replacing single messages with threads and unread state.
 - **Multi-language support.** Listed as a Plus in the assignment and deliberately skipped: the
   copy is the smaller half, and doing it honestly means locale-aware price and date formatting
-  in  plus a decision about which language a listing is written in, which is a
-  content problem rather than a UI one.
+  in `src/lib/format.ts` plus a decision about which language a listing itself is written in —
+  a content problem rather than a UI one.
 - **Listing edit.** A seller can create and unpublish but not edit; the form exists, only the
   update path is missing.
 - **Accessibility pass.** Form controls have labels and the demo sign-in buttons now have
