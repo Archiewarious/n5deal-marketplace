@@ -6,7 +6,7 @@ import { formatPriceFull, formatDate } from '@/lib/format'
 import { matchAssetToBuyer } from '@/lib/matching'
 import { TopNav } from '@/components/TopNav'
 import { ContactForm } from '@/components/ContactForm'
-import { PriceContext } from '@/components/PriceContext'
+import { PriceChart } from '@/components/PriceChart'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 
 function Field({ label, value }: { label: string; value: string | number | null }) {
@@ -149,8 +149,8 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         )}
 
         {peersCents.length >= 3 && (
-          <section className="mb-6">
-            <PriceContext
+          <section className="mb-6 rounded-xl border bg-surface p-5">
+            <PriceChart
               priceCents={asset.asking_price_cents}
               peersCents={peersCents}
               label={peerLabel}
