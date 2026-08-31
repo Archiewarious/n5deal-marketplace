@@ -2,9 +2,13 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { formatPriceFull } from '@/lib/format'
 import { CountryTag } from '@/components/CountryTag'
+import { sectorTone } from '@/lib/sector'
+import { Reveal } from '@/components/Reveal'
+import { CountUp } from '@/components/CountUp'
 import { RoleCards } from '@/components/RoleCards'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { getT } from '@/lib/locale'
+import { getLocale, getT } from '@/lib/locale'
+import { intlTag } from '@/lib/i18n'
 
 export async function generateMetadata() {
   const t = await getT()
@@ -27,6 +31,7 @@ export default async function Home() {
   // the publishable key. If the function is not deployed the page still renders; the register
   // simply has nothing to count, which is better than a crash on the front page.
   const t = await getT()
+  const tag = intlTag(await getLocale())
   const supabase = await createClient()
   const { data } = await supabase.rpc('platform_stats')
   const stats = (data as Stats | null) ?? null
@@ -104,16 +109,22 @@ export default async function Home() {
                 <p className="font-mono text-[11px] text-faint">{t('home.registerNote')}</p>
               </div>
 
+              {/* The figures count up once, when the band scrolls into view. Nothing about the
+                  number is invented — the target is the real aggregate — the animation only
+                  decides how the eye arrives at it, and a figure that climbs reads as a market
+                  where one already at rest reads as a fact. */}
               <dl className="grid grid-cols-2 sm:grid-cols-4">
                 {[
-                  { k: 'home.listings', v: String(stats.listings) },
-                  { k: 'home.jurisdictions', v: String(stats.jurisdictions) },
-                  { k: 'home.participants', v: String(stats.participants) },
-                  { k: 'home.valueListed', v: formatPriceFull(stats.value_cents) },
+                  { k: 'home.listings', n: stats.listings, money: false },
+                  { k: 'home.jurisdictions', n: stats.jurisdictions, money: false },
+                  { k: 'home.participants', n: stats.participants, money: false },
+                  { k: 'home.valueListed', n: stats.value_cents, money: true },
                 ].map((s) => (
                   <div key={s.k} className="border-b px-5 py-4 sm:border-b-0 sm:not-first:border-l">
                     <dt className="text-[10px] uppercase tracking-wider text-faint">{t(s.k)}</dt>
-                    <dd className="mt-1 font-mono text-2xl font-medium tabular-nums">{s.v}</dd>
+                    <dd className="mt-1 font-mono text-2xl font-medium tabular-nums">
+                      <CountUp value={s.n} money={s.money} tag={tag} />
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -133,7 +144,7 @@ export default async function Home() {
 
       {/* ── What is in it ───────────────────────────────────────────────────────── */}
       {stats && stats.by_sector.length > 0 && (
-        <section className="border-b px-4 py-16 sm:px-6">
+        <Reveal><section className="border-b px-4 py-16 sm:px-6">
           <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">{t('home.shelfTitle')}</h2>
@@ -149,27 +160,30 @@ export default async function Home() {
             </div>
 
             <ul className="space-y-3">
-              {stats.by_sector.map((s, i) => (
-                <li key={s.sector} className="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-3">
-                  <span className="truncate text-sm">{s.sector}</span>
-                  <span className="h-2 overflow-hidden rounded-full bg-field">
-                    <span
-                      className="block h-full rounded-full bg-accent-text"
-                      style={{ width: `${(s.n / sectorMax) * 100}%`, opacity: 1 - i * 0.13 }}
-                    />
-                  </span>
-                  <span className="text-right font-mono text-sm tabular-nums text-muted">
-                    {s.n}
-                  </span>
-                </li>
-              ))}
+              {stats.by_sector.map((s) => {
+                const tone = sectorTone(s.sector)
+                return (
+                  <li key={s.sector} className="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-3">
+                    <span className={`truncate text-sm ${tone.text}`}>{s.sector}</span>
+                    <span className="h-2.5 overflow-hidden rounded-full bg-field">
+                      <span
+                        className={`block h-full rounded-full ${tone.dot}`}
+                        style={{ width: `${(s.n / sectorMax) * 100}%` }}
+                      />
+                    </span>
+                    <span className="text-right font-mono text-sm tabular-nums text-muted">
+                      {s.n}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
-        </section>
+        </section></Reveal>
       )}
 
       {/* ── The three sides ─────────────────────────────────────────────────────── */}
-      <section className="border-b px-4 py-16 sm:px-6">
+      <Reveal><section className="border-b px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-2xl font-semibold tracking-tight">
             {t('home.sidesTitle')}
@@ -215,10 +229,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section></Reveal>
 
       {/* ── Why the boundary holds ──────────────────────────────────────────────── */}
-      <section className="border-b px-4 py-16 sm:px-6">
+      <Reveal><section className="border-b px-4 py-16 sm:px-6">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
@@ -254,10 +268,10 @@ export default async function Home() {
             ))}
           </ul>
         </div>
-      </section>
+      </section></Reveal>
 
       {/* ── Enter ───────────────────────────────────────────────────────────────── */}
-      <section id="roles" className="px-4 py-16 sm:px-6">
+      <Reveal><section id="roles" className="px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-5xl">
           <div className="mb-9 text-center">
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -278,7 +292,7 @@ export default async function Home() {
             — {t('home.fourthTail')}
           </p>
         </div>
-      </section>
+      </section></Reveal>
     </main>
   )
 }

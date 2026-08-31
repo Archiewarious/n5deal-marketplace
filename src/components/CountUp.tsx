@@ -13,16 +13,23 @@ import { useEffect, useRef, useState } from 'react'
  * The rendered text starts at the final value rather than at zero, so a crawler, a printout and
  * a visitor with no JavaScript all read the true figure. Only a browser that runs this effect
  * ever sees it lower than it is.
+ *
+ * Every prop is a primitive, and that is not a style choice: this is a client component rendered
+ * by a server one, and a function prop crosses that boundary as a serialisation error rather
+ * than as a callback. The first version took `format` and took the landing page down with it.
  */
 export function CountUp({
   value,
-  format,
+  money = false,
+  tag = 'en-GB',
   durationMs = 1100,
   className = '',
 }: {
   value: number
-  /** How to render the number at each step — the caller owns the currency and the locale. */
-  format: (n: number) => string
+  /** Render as euros. The value is then in cents, matching how money is stored everywhere. */
+  money?: boolean
+  /** Intl tag, so the grouping follows the language the page is in. */
+  tag?: string
   durationMs?: number
   className?: string
 }) {
@@ -53,7 +60,11 @@ export function CountUp({
           setN(Math.round(value * (1 - Math.pow(1 - p, 3))))
           if (p < 1) raf = requestAnimationFrame(step)
         }
-        setN(0)
+        // The count starts inside the first frame, never before it. requestAnimationFrame does
+        // not run in a hidden or backgrounded tab, and an earlier version set the display to
+        // zero first — so a page that was scrolled while hidden showed a real total of zero and
+        // stayed there. Leaving the value alone until a frame actually arrives means the worst
+        // case is no animation, which is the correct worst case.
         raf = requestAnimationFrame(step)
       },
       { threshold: 0.3 },
@@ -65,9 +76,17 @@ export function CountUp({
     }
   }, [value, durationMs])
 
+  const text = money
+    ? new Intl.NumberFormat(tag, {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: 0,
+      }).format(n / 100)
+    : new Intl.NumberFormat(tag).format(n)
+
   return (
     <span ref={ref} className={className}>
-      {format(n)}
+      {text}
     </span>
   )
 }

@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useT } from '@/components/LocaleProvider'
 import { SECTORS } from '@/lib/types'
+import { sectorTone } from '@/lib/sector'
 
 // Filter state lives in the URL, not in React state. That makes every filtered view
 // shareable and bookmarkable, survives a refresh for free, and lets the page stay a
@@ -117,17 +118,25 @@ export function AssetFilters({
         >
           {t('filters.all')} ({total})
         </button>
-        {SECTORS.map((s) => (
-          <button
-            key={s}
-            onClick={() => apply({ sector: activeSector === s ? null : s })}
-            className={`rounded-full border px-4 py-1.5 text-sm transition ${
-              activeSector === s ? 'border-accent-text text-accent-text' : 'text-muted hover:text-fg'
-            }`}
-          >
-            {s} ({counts[s] ?? 0})
-          </button>
-        ))}
+        {/* Each category keeps its own colour whether it is selected or not, so the row of
+            chips is a legend for the cards below it rather than five identical pills. */}
+        {SECTORS.map((s) => {
+          const tone = sectorTone(s)
+          const on = activeSector === s
+          return (
+            <button
+              key={s}
+              onClick={() => apply({ sector: on ? null : s })}
+              aria-pressed={on}
+              className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition ${
+                on ? `${tone.border} ${tone.bg} ${tone.text}` : 'text-muted hover:text-fg'
+              }`}
+            >
+              <span aria-hidden className={`size-1.5 rounded-full ${tone.dot}`} />
+              {s} ({counts[s] ?? 0})
+            </button>
+          )
+        })}
       </div>
 
       <div className="flex flex-wrap gap-2">

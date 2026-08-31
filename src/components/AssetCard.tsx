@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { formatPriceShort, formatDate } from '@/lib/format'
 import { CountryTag } from '@/components/CountryTag'
+import { sectorTone } from '@/lib/sector'
 import { PriceChart } from './PriceChart'
 import type { Asset } from '@/lib/types'
 import type { T } from '@/lib/i18n'
@@ -118,11 +119,14 @@ export function AssetCard({
   /** What that comparison set is, in words. */
   peerLabel?: string
 }) {
+  const tone = sectorTone(asset.sector)
+
   return (
     // `relative` plus a stretched link on the title makes the whole card clickable. A listing
     // that only responds on one small button is the kind of thing people click three times
     // before giving up on.
-    <article className="group relative rounded-2xl border bg-surface p-5 transition-colors hover:border-accent-text/40 sm:p-6">
+    <article className="group relative overflow-hidden rounded-2xl border bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-text/40 hover:shadow-lg hover:shadow-black/5 sm:p-6">
+      <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${tone.dot}`} />
       <header className="mb-4 flex items-start gap-4">
         <span className="grid size-9 shrink-0 place-items-center rounded-full border font-mono text-sm text-muted">
           {asset.public_id}
@@ -138,8 +142,13 @@ export function AssetCard({
               asset.title
             )}
           </h2>
-          <div className="mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <CountryTag country={asset.country} size="lg" />
+            <span
+              className={`rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider ${tone.bg} ${tone.text}`}
+            >
+              {asset.sector}
+            </span>
           </div>
         </div>
 

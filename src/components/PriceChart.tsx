@@ -96,10 +96,13 @@ export function PriceChart({
                 <span
                   key={i}
                   title={formatPriceShort(c)}
-                  className={`min-w-0 flex-1 rounded-t-sm ${
+                  className={`grow min-w-0 flex-1 rounded-t-sm ${
                     isThis ? 'bg-accent-text' : 'bg-elevated'
                   }`}
-                  style={{ height: `${height(c)}%` }}
+                  // The distribution draws itself left to right, so the eye follows the shape
+                  // rather than arriving at it. Capped, or a wide set would still be growing
+                  // after the reader has moved on.
+                  style={{ height: `${height(c)}%`, animationDelay: `${Math.min(i, 24) * 22}ms` }}
                 />
               )
             })}
