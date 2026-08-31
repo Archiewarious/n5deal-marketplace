@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/session'
 import { fetchAllRows } from '@/lib/fetchAllRows'
@@ -89,8 +90,10 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
 
   const rows = mandate
     ? visible
-        .map((a) => ({ a, score: matchAssetToBuyer(a, mandate).score }))
-        .sort((x, y) => y.score - x.score)
+        .map((a) => ({ a, score: matchAssetToBuyer(a, mandate).score ?? undefined }))
+        // A mandate with no criteria scores null on every listing; those keep their natural
+        // order rather than pretending to be ranked.
+        .sort((x, y) => (y.score ?? -1) - (x.score ?? -1))
     : visible.map((a) => ({ a, score: undefined as number | undefined }))
 
   return (
@@ -131,9 +134,19 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           </p>
         )}
 
+        {mandate && rows.every((r) => r.score === undefined) && rows.length > 0 && (
+          <p className="mb-4 rounded-lg border bg-surface px-3 py-2 text-sm text-muted">
+            Your mandate has no criteria yet, so nothing can be ranked against it.{' '}
+            <Link href="/buyer/profile" className="text-accent-text hover:underline">
+              Describe what you are looking for
+            </Link>{' '}
+            and this list will reorder itself.
+          </p>
+        )}
+
         <p className="mb-3 text-sm text-faint">
           {rows.length} of {all.length} listings
-          {mandate && ' · sorted by fit with your mandate'}
+          {rows.some((r) => r.score !== undefined) && ' · sorted by fit with your mandate'}
         </p>
 
         <div className="grid gap-4">

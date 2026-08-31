@@ -24,9 +24,11 @@ NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-To recreate the database from scratch, run `supabase/01_schema.sql` and then
-`supabase/02_seed.sql` in the Supabase SQL editor. The first builds the tables, enums,
-indexes and RLS policies; the second creates six demo accounts and sixteen listings.
+To recreate the database from scratch, run the three SQL files in order in the Supabase SQL
+editor: `supabase/01_schema.sql` builds the tables, enums, indexes and RLS policies;
+`supabase/02_seed.sql` creates six demo accounts and sixteen listings;
+`supabase/03_hardening.sql` closes the holes an audit found in the first file — it is not
+optional, and it explains each one.
 
 ### Demo accounts
 
@@ -69,6 +71,26 @@ The suspended account is the interesting row. Suspension is not a hidden button:
 
 Two `security definer` helpers, `current_role_of()` and `is_active_user()`, let a policy read
 `profiles` without recursing into that table's own policy.
+
+### …and the first version of it did not hold
+
+The paragraph above is what I believed after writing the policies and reading them back. It was
+wrong, and reading them again would never have shown it — attacking them did.
+
+RLS restricts rows, never columns. `profiles_update_self` checked `id = auth.uid()` and nothing
+else, and Supabase grants `authenticated` UPDATE on every column by default, so the owner of a
+row could rewrite their own `role` and `status`. Reproduced against the live database with the
+publishable key that already ships in the browser bundle: a suspended buyer lifted their own
+suspension and became a platform manager, going from 0 visible listings to all 16 — with the
+admin console, other sellers' drafts and the whole message history behind it.
+
+Four more of the same shape came out of the same pass, and two of my first fixes were
+themselves wrong. **[supabase/SECURITY.md](supabase/SECURITY.md)** documents all of it: each
+hole, how it was demonstrated, what closed it, and the numbers after.
+
+The honest version of the claim above is therefore narrower: access control lives in the
+database, and it took an audit and a set of live exploits to make that true rather than
+aspirational.
 
 ### Money is stored as whole euro cents
 

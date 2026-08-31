@@ -131,34 +131,3 @@ create policy contact_read on contact_requests
 create policy contact_insert on contact_requests
   for insert to authenticated
   with check (from_user_id = auth.uid() and is_active_user());
-
--- ─────────────────────────────────────────────────────────────────────────────
--- Column-level guard on profiles.
---
--- RLS in Postgres decides which ROWS a statement may touch, never which COLUMNS.
--- `profiles_update_self` checks `id = auth.uid()` and nothing else, and Supabase grants
--- `authenticated` UPDATE on every column by default — so the row owner could rewrite their
--- own `role` and `status`. Verified against the live database before this trigger existed:
--- a SUSPENDED buyer sent two PATCH requests to /rest/v1/profiles with the publishable key
--- already present in the browser bundle, came back as an ACTIVE MANAGER, and went from
--- seeing 0 listings to seeing all 16 including other sellers' drafts.
---
--- A column-level GRANT is the wrong instrument here: a manager reaches PostgREST as the
--- same `authenticated` role, so revoking UPDATE on `status` would disarm the suspend button
--- as well. The trigger keeps the manager's write and silently restores the two privileged
--- columns for everyone else.
-create or replace function profiles_guard() returns trigger
-language plpgsql security definer set search_path = public as $fn$
-begin
-  if current_role_of() is distinct from 'MANAGER' then
-    new.role := old.role;
-    new.status := old.status;
-  end if;
-  return new;
-end
-$fn$;
-
-drop trigger if exists profiles_guard on profiles;
-create trigger profiles_guard
-  before update on profiles
-  for each row execute function profiles_guard();

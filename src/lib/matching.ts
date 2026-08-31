@@ -14,45 +14,56 @@
 import type { Asset, BuyerProfile } from './types.ts'
 
 export type MatchReason = { label: string; hit: boolean }
-export type Match = { score: number; reasons: MatchReason[] }
+/** `score` is null when the mandate states no criteria at all — see below. */
+export type Match = { score: number | null; reasons: MatchReason[] }
 
 const WEIGHT = { sector: 45, jurisdiction: 30, price: 25 }
 
 export function matchAssetToBuyer(asset: Asset, buyer: BuyerProfile): Match {
   const reasons: MatchReason[] = []
-  let score = 0
+  let earned = 0
+  let available = 0
 
-  const sectorHit = buyer.sectors.length === 0 || buyer.sectors.includes(asset.sector)
-  if (sectorHit) score += WEIGHT.sector
-  reasons.push({
-    label: buyer.sectors.length ? `Sector ${asset.sector}` : 'No sector restriction',
-    hit: sectorHit,
-  })
+  // An axis the buyer left blank is not a match — it is an absence of criteria, and it must
+  // not contribute weight. The first version added the full weight for every empty axis, so a
+  // brand-new mandate with nothing filled in scored 100% against every listing in the
+  // catalogue: the most confident possible number on the least possible information.
+  // The percentage is now taken over the axes the buyer actually stated, and a mandate that
+  // states nothing returns null so the UI can stay silent instead of inventing certainty.
 
-  const jurisdictionHit =
-    buyer.jurisdictions.length === 0 || buyer.jurisdictions.includes(asset.country)
-  if (jurisdictionHit) score += WEIGHT.jurisdiction
-  reasons.push({
-    label: buyer.jurisdictions.length ? `Jurisdiction ${asset.country}` : 'Any jurisdiction',
-    hit: jurisdictionHit,
-  })
+  if (buyer.sectors.length > 0) {
+    available += WEIGHT.sector
+    const hit = buyer.sectors.includes(asset.sector)
+    if (hit) earned += WEIGHT.sector
+    reasons.push({ label: `Sector ${asset.sector}`, hit })
+  }
 
-  // The mandate stores whole euros, the asset stores cents.
-  const priceEur = asset.asking_price_cents / 100
-  const min = buyer.ticket_min_eur
-  const max = buyer.ticket_max_eur
-  const priceHit = (min === null || priceEur >= min) && (max === null || priceEur <= max)
-  if (priceHit) score += WEIGHT.price
-  reasons.push({ label: 'Inside ticket range', hit: priceHit })
+  if (buyer.jurisdictions.length > 0) {
+    available += WEIGHT.jurisdiction
+    const hit = buyer.jurisdictions.includes(asset.country)
+    if (hit) earned += WEIGHT.jurisdiction
+    reasons.push({ label: `Jurisdiction ${asset.country}`, hit })
+  }
 
-  return { score, reasons }
+  const { ticket_min_eur: min, ticket_max_eur: max } = buyer
+  if (min !== null || max !== null) {
+    available += WEIGHT.price
+    // The mandate stores whole euros, the asset stores cents.
+    const priceEur = asset.asking_price_cents / 100
+    const hit = (min === null || priceEur >= min) && (max === null || priceEur <= max)
+    if (hit) earned += WEIGHT.price
+    reasons.push({ label: 'Inside ticket range', hit })
+  }
+
+  if (available === 0) return { score: null, reasons: [] }
+  return { score: Math.round((earned / available) * 100), reasons }
 }
 
 /** Ranks published listings for one buyer, strongest first. */
 export function rankForBuyer(assets: Asset[], buyer: BuyerProfile) {
   return assets
     .map((asset) => ({ asset, match: matchAssetToBuyer(asset, buyer) }))
-    .sort((a, b) => b.match.score - a.match.score)
+    .sort((a, b) => (b.match.score ?? -1) - (a.match.score ?? -1))
 }
 
 /** The mirror direction: which buyers should a seller approach about this listing. */
@@ -62,5 +73,5 @@ export function rankBuyersForAsset(
 ) {
   return buyers
     .map((buyer) => ({ buyer, match: matchAssetToBuyer(asset, buyer) }))
-    .sort((a, b) => b.match.score - a.match.score)
+    .sort((a, b) => (b.match.score ?? -1) - (a.match.score ?? -1))
 }

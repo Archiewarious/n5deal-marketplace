@@ -49,9 +49,29 @@ test('each axis is worth its stated weight', () => {
   assert.equal(matchAssetToBuyer(asset({ asking_price_cents: 47_000_000 }), buyer()).score, 75)
 })
 
-test('an empty mandate axis matches everything rather than nothing', () => {
-  const open = buyer({ sectors: [], jurisdictions: [], ticket_min_eur: null, ticket_max_eur: null })
-  assert.equal(matchAssetToBuyer(asset({ sector: 'Crypto', country: 'Seychelles' }), open).score, 100)
+// Regression. A blank axis used to add its full weight, so a mandate with nothing filled in
+// scored 100% against every listing in the catalogue — the most confident possible number on
+// the least possible information. A blank axis is an absence of criteria, not a match.
+test('a blank axis carries no weight and is not counted', () => {
+  const noSector = buyer({ sectors: [] })
+  // only jurisdiction (30) and price (25) are stated, and both hit
+  assert.equal(matchAssetToBuyer(asset(), noSector).score, 100)
+  // the same mandate against a listing that misses the jurisdiction: 25 of 55
+  assert.equal(matchAssetToBuyer(asset({ country: 'Malta' }), noSector).score, 45)
+  assert.equal(matchAssetToBuyer(asset(), noSector).reasons.length, 2)
+})
+
+test('a mandate with no criteria at all scores null, never 100', () => {
+  const empty = buyer({ sectors: [], jurisdictions: [], ticket_min_eur: null, ticket_max_eur: null })
+  const m = matchAssetToBuyer(asset({ sector: 'Crypto', country: 'Seychelles' }), empty)
+  assert.equal(m.score, null)
+  assert.deepEqual(m.reasons, [])
+})
+
+test('listings are not reordered when the mandate says nothing', () => {
+  const empty = buyer({ sectors: [], jurisdictions: [], ticket_min_eur: null, ticket_max_eur: null })
+  const ranked = rankForBuyer([asset({ id: 'first' }), asset({ id: 'second' })], empty)
+  assert.deepEqual(ranked.map((r) => r.asset.id), ['first', 'second'])
 })
 
 test('a price exactly on the boundary counts as inside', () => {

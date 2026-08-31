@@ -40,7 +40,7 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
     )
     suggestions = mine
       .map((asset) => ({ asset, score: matchAssetToBuyer(asset, mandate).score }))
-      .filter((s) => s.score > 0)
+      .filter((s): s is { asset: Asset; score: number } => (s.score ?? 0) > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 5)
   }
