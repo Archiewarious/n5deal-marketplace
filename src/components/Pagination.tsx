@@ -38,19 +38,44 @@ export function Pagination({
   const box =
     'grid h-9 min-w-9 place-items-center rounded-lg border px-3 font-mono text-sm transition'
 
+  /**
+   * Previous and Next keep being anchors on the boundary pages instead of turning into spans.
+   *
+   * Two reasons, both found by review. Swapping the element type destroys the DOM node, so
+   * pressing Enter on Next at the last page moved focus to <body> and restarted the tab order
+   * from the top of the document. And a bare <span> carries no disabled semantics at all, which
+   * means the WCAG exemption for inactive controls does not apply to it and its text is held to
+   * the full 4.5:1 — which `opacity-50` over --faint failed at 1.97:1, because --faint is
+   * already documented as sitting on the 4.8:1 floor.
+   *
+   * So: same element, aria-disabled, out of the tab order, and dimmed by colour rather than by
+   * opacity so the contrast stays measurable.
+   */
+  function Step({ to, label, rel }: { to: number; label: string; rel: 'prev' | 'next' }) {
+    const off = to < 1 || to > pages
+    if (off) {
+      return (
+        <span aria-disabled="true" className={`${box} border-line/60 text-faint`}>
+          {label}
+        </span>
+      )
+    }
+    return (
+      <Link href={hrefFor(to)} rel={rel} className={`${box} text-muted hover:text-fg`}>
+        {label}
+      </Link>
+    )
+  }
+
   return (
     <nav aria-label={t('page.label')} className="mt-8 flex flex-wrap items-center gap-2">
-      {page > 1 ? (
-        <Link href={hrefFor(page - 1)} rel="prev" className={`${box} text-muted hover:text-fg`}>
-          {t('page.previous')}
-        </Link>
-      ) : (
-        <span className={`${box} text-faint opacity-50`}>{t('page.previous')}</span>
-      )}
+      <Step to={page - 1} label={t('page.previous')} rel="prev" />
 
       {slots.map((s, i) =>
         s === 'gap' ? (
-          <span key={`gap-${i}`} className="px-1 font-mono text-sm text-faint">
+          // Decoration. Without this a screen reader reads an ellipsis in the middle of a list
+          // of links.
+          <span key={`gap-${i}`} aria-hidden className="px-1 font-mono text-sm text-faint">
             …
           </span>
         ) : s === page ? (
@@ -62,19 +87,19 @@ export function Pagination({
             {s}
           </span>
         ) : (
-          <Link key={s} href={hrefFor(s)} className={`${box} text-muted hover:text-fg`}>
+          // The visible label is a bare digit, which in a list of links reads as nothing at all.
+          <Link
+            key={s}
+            href={hrefFor(s)}
+            aria-label={t('page.goTo', { n: s })}
+            className={`${box} text-muted hover:text-fg`}
+          >
             {s}
           </Link>
         ),
       )}
 
-      {page < pages ? (
-        <Link href={hrefFor(page + 1)} rel="next" className={`${box} text-muted hover:text-fg`}>
-          {t('page.next')}
-        </Link>
-      ) : (
-        <span className={`${box} text-faint opacity-50`}>{t('page.next')}</span>
-      )}
+      <Step to={page + 1} label={t('page.next')} rel="next" />
     </nav>
   )
 }

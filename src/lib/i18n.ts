@@ -481,6 +481,8 @@ const en: Dict = {
   'page.previous': 'Previous',
   'page.next': 'Next',
   'assets.showing': 'Showing {from}–{to} of {shown} listings',
+  // second pass: strings the first sweep found without a key
+  'page.goTo': 'Page {n}',
 }
 
 const uk: Dict = {
@@ -610,7 +612,7 @@ const uk: Dict = {
   'assets.title': 'Ліцензовані активи та компанії',
   'assets.lede': 'Банки, EMI, платіжні установи та крипто-компанії у {n} юрисдикціях.',
   'assets.valueOnPlatform': 'Вартість на платформі',
-  'assets.count': '{shown} з {total} оголошень',
+  'assets.count': 'Оголошень: {shown} з {total}',
   'assets.byFit': 'відсортовано за відповідністю вашому мандату',
   'assets.byNew': 'спочатку нові',
   'assets.byPriceDesc': 'спочатку найдорожчі',
@@ -739,7 +741,7 @@ const uk: Dict = {
   'buyers.crumb': 'N5Deal / Покупці',
   'buyers.title': 'Мандати покупців',
   'buyers.lede': 'Що шукає кожен покупець, щоб ви зверталися до потрібного.',
-  'buyers.count': '{shown} з {total} покупців',
+  'buyers.count': 'Покупців: {shown} з {total}',
   'buyers.ticket': 'Чек',
   'buyers.fit': 'підходить {fits} з ваших {total}',
   'buyers.viewAndContact': 'Відкрити та написати',
@@ -905,7 +907,8 @@ const uk: Dict = {
   'page.label': 'Сторінки',
   'page.previous': 'Назад',
   'page.next': 'Далі',
-  'assets.showing': 'Показано {from}–{to} з {shown} оголошень',
+  'assets.showing': 'Показано {from}–{to} із {shown}',
+  'page.goTo': 'Сторінка {n}',
 }
 
 const ru: Dict = {
@@ -1035,7 +1038,7 @@ const ru: Dict = {
   'assets.title': 'Лицензированные активы и компании',
   'assets.lede': 'Банки, EMI, платёжные учреждения и крипто-компании в {n} юрисдикциях.',
   'assets.valueOnPlatform': 'Стоимость на платформе',
-  'assets.count': '{shown} из {total} объявлений',
+  'assets.count': 'Объявлений: {shown} из {total}',
   'assets.byFit': 'отсортировано по соответствию вашему мандату',
   'assets.byNew': 'сначала новые',
   'assets.byPriceDesc': 'сначала самые дорогие',
@@ -1164,7 +1167,7 @@ const ru: Dict = {
   'buyers.crumb': 'N5Deal / Покупатели',
   'buyers.title': 'Мандаты покупателей',
   'buyers.lede': 'Что ищет каждый покупатель, чтобы вы обращались к нужному.',
-  'buyers.count': '{shown} из {total} покупателей',
+  'buyers.count': 'Покупателей: {shown} из {total}',
   'buyers.ticket': 'Чек',
   'buyers.fit': 'подходит {fits} из ваших {total}',
   'buyers.viewAndContact': 'Открыть и написать',
@@ -1330,7 +1333,8 @@ const ru: Dict = {
   'page.label': 'Страницы',
   'page.previous': 'Назад',
   'page.next': 'Дальше',
-  'assets.showing': 'Показано {from}–{to} из {shown} объявлений',
+  'assets.showing': 'Показано {from}–{to} из {shown}',
+  'page.goTo': 'Страница {n}',
 }
 
 const DICT: Record<Locale, Dict> = { en, uk, ru }

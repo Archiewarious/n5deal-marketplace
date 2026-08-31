@@ -6,6 +6,7 @@ import { intlTag } from '@/lib/i18n'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { parseQuery } from '@/lib/parseQuery'
 import { aiEnabled } from '@/lib/ai'
+import { clampPage, pageCount } from '@/lib/paging'
 import { parsePriceToCents, formatPriceFull } from '@/lib/format'
 import { matchAssetToBuyer } from '@/lib/matching'
 import { AssetCard } from '@/components/AssetCard'
@@ -170,9 +171,11 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   // about thirty thousand pixels of scrolling. The reference site holds 137 listings and pages
   // them for the same reason; the answer is fewer cards at a time, not a smaller card.
   const PER_PAGE = 8
-  const pages = Math.max(1, Math.ceil(rows.length / PER_PAGE))
-  // Clamped rather than trusted: ?page=0 and ?page=999 both arrive from a URL bar.
-  const page = Math.min(pages, Math.max(1, Number(str(sp.page)) || 1))
+  const pages = pageCount(rows.length, PER_PAGE)
+  // clampPage is in its own module with its own tests because it branches on a value from the
+  // address bar, and the inline version this replaces clamped the range while ignoring the type:
+  // ?page=2.7 walked straight through into slice().
+  const page = clampPage(str(sp.page), pages)
   const from = (page - 1) * PER_PAGE
   const pageRows = rows.slice(from, from + PER_PAGE)
 
