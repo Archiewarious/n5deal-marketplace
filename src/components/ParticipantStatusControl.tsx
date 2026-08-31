@@ -21,11 +21,16 @@ export function ParticipantStatusControl({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Suspending is the one action here that reaches another company, so it asks twice.
+  // Restoring does not: undoing a suspension needs no ceremony.
+  const [pending, setPending] = useState(false)
+
   const next: UserStatus = status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE'
 
   async function toggle() {
     setBusy(true)
     setError(null)
+    setPending(false)
     const supabase = createClient()
     const { error } = await supabase.from('profiles').update({ status: next }).eq('id', userId)
     setBusy(false)
@@ -36,11 +41,37 @@ export function ParticipantStatusControl({
     router.refresh()
   }
 
+  if (pending) {
+    return (
+      <span className="inline-flex items-center gap-2 whitespace-nowrap">
+        <span className="text-xs text-muted">Suspend this account?</span>
+        <button
+          onClick={toggle}
+          disabled={busy}
+          autoFocus
+          className="rounded-full border border-danger px-3 py-1 text-xs text-danger transition hover:bg-danger-bg disabled:opacity-50"
+        >
+          Yes, suspend
+        </button>
+        <button
+          onClick={() => setPending(false)}
+          className="rounded-full border px-3 py-1 text-xs text-muted transition hover:text-fg"
+        >
+          Cancel
+        </button>
+      </span>
+    )
+  }
+
   return (
     <span className="inline-flex items-center gap-2">
-      {error && <span className="text-xs text-danger">{error}</span>}
+      {error && (
+        <span role="alert" className="text-xs text-danger">
+          {error}
+        </span>
+      )}
       <button
-        onClick={toggle}
+        onClick={() => (next === 'SUSPENDED' ? setPending(true) : toggle())}
         disabled={busy}
         className={`rounded-full border px-3 py-1 text-xs transition disabled:opacity-50 ${
           next === 'SUSPENDED'

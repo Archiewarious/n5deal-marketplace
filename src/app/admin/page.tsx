@@ -9,10 +9,17 @@ import { ParticipantStatusControl } from '@/components/ParticipantStatusControl'
 import type { Asset, Profile } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 import { StatStrip } from '@/components/StatStrip'
+import { CountryTag } from '@/components/CountryTag'
 
 export const metadata = { title: 'Administration' }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
+
+const ROLE_STYLE: Record<Profile['role'], string> = {
+  SELLER: 'text-seller',
+  BUYER: 'text-buyer',
+  MANAGER: 'text-manager',
+}
 
 const STATE_STYLE: Record<Asset['status'], string> = {
   PUBLISHED: 'text-ok bg-ok-bg',
@@ -63,7 +70,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
   return (
     <>
       <TopNav profile={profile} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <p className="text-xs text-faint">N5Deal / Administration</p>
         <h1 className="text-2xl font-semibold tracking-tight">Participants and listings</h1>
         <p className="mt-1 text-sm text-muted">
@@ -147,7 +154,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                       {p.company ?? p.full_name}
                       <p className="text-xs text-faint">{p.full_name}</p>
                     </td>
-                    <td className="px-4 py-3 text-muted">{p.role.toLowerCase()}</td>
+                    <td className={`px-4 py-3 font-mono text-xs ${ROLE_STYLE[p.role]}`}>
+                      {p.role.toLowerCase()}
+                    </td>
                     <td className="px-4 py-3 text-muted">{p.email}</td>
                     <td className="px-4 py-3">
                       <span
@@ -216,7 +225,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                     <td className="px-4 py-3 text-muted">
                       {byId.get(a.seller_id)?.company ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-muted">{a.country}</td>
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-2 text-muted">
+                        <CountryTag country={a.country} />
+                        <span className="hidden lg:inline">{a.country}</span>
+                      </span>
+                    </td>
                     <td className="px-4 py-3">{formatPriceShort(a.asking_price_cents)}</td>
                     <td className="px-4 py-3">
                       <span

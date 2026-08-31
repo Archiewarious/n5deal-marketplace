@@ -117,7 +117,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   return (
     <>
       <TopNav profile={profile} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs text-faint">N5Deal / All listings</p>
@@ -182,7 +182,9 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           </p>
         )}
 
-        <p className="mb-3 text-sm text-faint">
+        {/* The filters are plain GET forms, so a filter change is a navigation and the count
+            is the only thing that reports what happened. aria-live makes it report to everyone. */}
+        <p aria-live="polite" className="mb-3 text-sm text-faint">
           {rows.length} of {all.length} listings
           {rows.some((r) => r.score !== undefined) && ' · sorted by fit with your mandate'}
         </p>
@@ -198,9 +200,18 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
             </div>
           ))}
           {rows.length === 0 && (
-            <p className="rounded-xl border bg-surface px-5 py-8 text-center text-sm text-muted">
-              Nothing matches these filters.
-            </p>
+            <div className="rounded-xl border bg-surface px-5 py-10 text-center">
+              <p className="text-sm text-muted">
+                Nothing matches these filters.
+                {all.length > 0 && ` All ${all.length} listings are still there.`}
+              </p>
+              <Link
+                href="/assets"
+                className="mt-4 inline-block rounded-full border px-5 py-2 text-sm text-accent-text transition hover:border-accent-text"
+              >
+                Clear every filter
+              </Link>
+            </div>
           )}
         </div>
       </main>

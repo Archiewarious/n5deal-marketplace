@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { formatPriceShort, formatDate } from '@/lib/format'
-import { countryFlag } from '@/lib/flags'
+import { CountryTag } from '@/components/CountryTag'
 import { PriceContext } from './PriceContext'
 import type { Asset } from '@/lib/types'
 
@@ -65,9 +65,7 @@ export function AssetCard({
         <span className="grid size-8 shrink-0 place-items-center rounded-full border font-mono text-xs text-muted">
           {asset.public_id}
         </span>
-        <span className="text-2xl leading-none" aria-hidden>
-          {countryFlag(asset.country)}
-        </span>
+        <CountryTag country={asset.country} />
 
         <h2 className="min-w-0 flex-1 truncate text-base font-medium">
           <Link href={`/assets/${asset.id}`} className="after:absolute after:inset-0">

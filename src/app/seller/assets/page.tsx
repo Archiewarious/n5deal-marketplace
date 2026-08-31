@@ -8,6 +8,7 @@ import { ListingStatusControl } from '@/components/ListingStatusControl'
 import type { Asset } from '@/lib/types'
 import { LoadWarning } from '@/components/LoadWarning'
 import { StatStrip } from '@/components/StatStrip'
+import { CountryTag } from '@/components/CountryTag'
 
 export const metadata = { title: 'My listings' }
 
@@ -36,7 +37,7 @@ export default async function SellerAssetsPage() {
   return (
     <>
       <TopNav profile={profile} />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
+      <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-xs text-faint">N5Deal / My listings</p>
@@ -107,7 +108,12 @@ export default async function SellerAssetsPage() {
                       #{a.public_id} · {formatDate(a.created_at)}
                     </p>
                   </td>
-                  <td className="px-4 py-3 text-muted">{a.country}</td>
+                  <td className="px-4 py-3">
+                    <span className="flex items-center gap-2 text-muted">
+                      <CountryTag country={a.country} />
+                      <span className="hidden lg:inline">{a.country}</span>
+                    </span>
+                  </td>
                   <td className="px-4 py-3">{formatPriceShort(a.asking_price_cents)}</td>
                   <td className="px-4 py-3 text-muted">{a.views}</td>
                   <td className="px-4 py-3">

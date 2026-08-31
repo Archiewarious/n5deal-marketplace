@@ -1,8 +1,10 @@
-// Country flags as emoji, built from the ISO 3166-1 alpha-2 code by offsetting each
-// letter into the regional-indicator block. No image assets, no external requests, and it
-// degrades to an empty string for a country the map does not know rather than to a broken
-// image. The listing card leans on the flag for instant jurisdiction recognition, which is
-// the first thing a buyer filters on.
+// ISO 3166-1 alpha-2 for the jurisdictions in the catalogue.
+//
+// This file used to build emoji flags from these codes by offsetting each letter into the
+// regional-indicator block. That was a bad bet: Windows has no colour flag glyphs, so the
+// browser fell back to the two raw letters and every card showed grey text where a flag was
+// meant to be. The codes themselves are what a licence names anyway, so CountryTag sets them
+// in mono and nothing depends on a font shipping an emoji.
 const ISO: Record<string, string> = {
   Australia: 'AU',
   Canada: 'CA',
@@ -27,10 +29,4 @@ const ISO: Record<string, string> = {
 /** The two-letter code itself, for places that set jurisdictions in mono rather than as a flag. */
 export function countryCode(country: string): string {
   return ISO[country] ?? country.slice(0, 2).toUpperCase()
-}
-
-export function countryFlag(country: string): string {
-  const code = ISO[country]
-  if (!code) return '🏳'
-  return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
 }

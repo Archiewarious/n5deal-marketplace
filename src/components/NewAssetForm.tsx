@@ -174,7 +174,10 @@ export function NewAssetForm({ sellerId }: { sellerId: string }) {
       </Field>
 
       {error && (
-        <p className="rounded-lg border border-danger bg-danger-bg px-3 py-2 text-sm text-danger">
+        <p
+          role="alert"
+          className="rounded-lg border border-danger bg-danger-bg px-3 py-2 text-sm text-danger"
+        >
           {error}
         </p>
       )}

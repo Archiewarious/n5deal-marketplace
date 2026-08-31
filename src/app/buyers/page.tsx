@@ -50,7 +50,7 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
   return (
     <>
       <TopNav profile={profile} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <div className="mb-6">
           <p className="text-xs text-faint">N5Deal / Buyers</p>
           <h1 className="text-xl font-semibold">Buyer mandates</h1>

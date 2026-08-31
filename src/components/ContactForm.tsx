@@ -68,7 +68,12 @@ export function ContactForm({
 
       {state === 'sent' ? (
         <div className="flex items-center gap-3">
-          <p className="rounded-lg border border-ok bg-ok-bg px-3 py-2 text-sm text-ok">
+          {/* role="status" because the form disappears when it succeeds: without it a screen
+              reader is told nothing happened at all. */}
+          <p
+            role="status"
+            className="rounded-lg border border-ok bg-ok-bg px-3 py-2 text-sm text-ok"
+          >
             Message sent.
           </p>
           <button
@@ -80,15 +85,18 @@ export function ContactForm({
         </div>
       ) : (
         <form onSubmit={send} className="grid gap-3">
-          <textarea
-            required
-            minLength={10}
-            rows={3}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Introduce yourself and say what you would like to discuss."
-            className="rounded-lg border bg-field px-3 py-2 text-sm"
-          />
+          <label className="grid gap-1.5">
+            <span className="sr-only">Message to {toName}</span>
+            <textarea
+              required
+              minLength={10}
+              rows={3}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Introduce yourself and say what you would like to discuss."
+              className="rounded-lg border bg-field px-3 py-2 text-sm"
+            />
+          </label>
           <div className="flex items-center gap-3">
             <button
               disabled={state === 'sending'}
@@ -96,7 +104,11 @@ export function ContactForm({
             >
               {state === 'sending' ? 'Sending…' : 'Send message'}
             </button>
-            {error && <p className="text-sm text-danger">{error}</p>}
+            {error && (
+              <p role="alert" className="text-sm text-danger">
+                {error}
+              </p>
+            )}
           </div>
         </form>
       )}

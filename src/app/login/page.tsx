@@ -7,7 +7,7 @@ export const metadata = { title: 'Choose a role' }
 // page ends with the same three and there is no reason for two copies of them to drift apart.
 export default function LoginPage() {
   return (
-    <main className="relative flex-1 overflow-hidden px-4 py-14 sm:px-6">
+    <main id="content" className="relative flex-1 overflow-hidden px-4 py-14 sm:px-6">
       {/* One quiet pool of the accent behind the cards. The palette is deliberately flat, so
           this is depth rather than a glow: enough to keep the three cards off a dead ground,
           not enough to be noticed as an effect. */}

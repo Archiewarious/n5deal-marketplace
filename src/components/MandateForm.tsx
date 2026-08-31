@@ -173,7 +173,10 @@ export function MandateForm({
       </fieldset>
 
       {error && (
-        <p className="rounded-lg border border-danger bg-danger-bg px-3 py-2 text-sm text-danger">
+        <p
+          role="alert"
+          className="rounded-lg border border-danger bg-danger-bg px-3 py-2 text-sm text-danger"
+        >
           {error}
         </p>
       )}
@@ -185,7 +188,11 @@ export function MandateForm({
         >
           {busy ? 'Saving…' : 'Save'}
         </button>
-        {saved && <span className="text-sm text-ok">Saved.</span>}
+        {saved && (
+          <span role="status" className="text-sm text-ok">
+            Saved.
+          </span>
+        )}
       </div>
     </form>
   )

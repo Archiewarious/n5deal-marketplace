@@ -19,7 +19,7 @@ export default async function BuyerProfilePage() {
   return (
     <>
       <TopNav profile={profile} />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
+      <main id="content" className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
         <p className="text-xs text-faint">N5Deal / My mandate</p>
         <h1 className="mb-1 text-xl font-semibold">Your profile and mandate</h1>
         <p className="mb-6 text-sm text-muted">

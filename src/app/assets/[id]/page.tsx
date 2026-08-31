@@ -84,7 +84,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <TopNav profile={profile} />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">
+      <main id="content" className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">
         <Link href="/assets" className="text-xs text-faint transition hover:text-fg">
           ← All listings
         </Link>

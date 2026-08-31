@@ -42,7 +42,7 @@ export default async function MessagesPage() {
   return (
     <>
       <TopNav profile={profile} />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">
+      <main id="content" className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">
         <p className="text-xs text-faint">N5Deal / Messages</p>
         <h1 className="mb-1 text-xl font-semibold">
           {profile.role === 'MANAGER' ? 'All contact requests' : 'Your contact requests'}

@@ -7,7 +7,7 @@ export const metadata = { title: 'Not found' }
 // so it has to say something true without saying which of the two happened.
 export default function NotFound() {
   return (
-    <main className="flex flex-1 items-center px-4 py-24 sm:px-6">
+    <main id="content" className="flex flex-1 items-center px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-lg">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">Error 404</p>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight">Nothing at this address</h1>

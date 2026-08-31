@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { formatPriceFull } from '@/lib/format'
-import { countryCode, countryFlag } from '@/lib/flags'
+import { CountryTag } from '@/components/CountryTag'
 import { RoleCards } from '@/components/RoleCards'
 
 export const metadata = {
@@ -30,7 +30,7 @@ export default async function Home() {
   const sectorMax = Math.max(1, ...(stats?.by_sector ?? []).map((s) => s.n))
 
   return (
-    <main className="flex-1">
+    <main id="content" className="flex-1">
       {/* ── The register ─────────────────────────────────────────────────────────
           A licence is a document with a jurisdiction, a regulator and a number, and the trade in
           them runs off a register. So the page opens as one rather than as a headline over a
@@ -118,10 +118,7 @@ export default async function Home() {
               <div className="flex flex-wrap gap-x-5 gap-y-2 border-t px-5 py-4">
                 {stats.by_country.map((c) => (
                   <span key={c.country} className="flex items-center gap-1.5 text-sm">
-                    <span aria-hidden>{countryFlag(c.country)}</span>
-                    <span className="font-mono text-muted" title={c.country}>
-                      {countryCode(c.country)}
-                    </span>
+                    <CountryTag country={c.country} />
                     <span className="font-mono tabular-nums text-faint">{c.n}</span>
                   </span>
                 ))}
