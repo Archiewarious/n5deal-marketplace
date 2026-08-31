@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/session'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { parseQuery } from '@/lib/parseQuery'
+import { aiEnabled } from '@/lib/ai'
 import { parsePriceToCents, formatPriceFull } from '@/lib/format'
 import { matchAssetToBuyer } from '@/lib/matching'
 import { AssetCard } from '@/components/AssetCard'
@@ -25,7 +26,8 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
 
   // A free-text query is parsed into structured filters first; explicit dropdown values
   // win over anything inferred from the text, because the user set them deliberately.
-  const parsed = parseQuery(str(sp.q))
+  const rawQuery = str(sp.q)
+  const parsed = parseQuery(rawQuery)
   const sector = str(sp.sector) || parsed.sector
   const country = str(sp.country) || parsed.country
   const kind = str(sp.kind)
@@ -36,6 +38,10 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   const typedMaxCents = rawMax ? parsePriceToCents(rawMax) : null
   const maxPriceUnreadable = Boolean(rawMax) && typedMaxCents === null
   const maxCents = typedMaxCents ?? parsed.maxPriceCents
+  // "eight figures" is the kind of thing only the model reads, and it comes back as a floor
+  // rather than a ceiling, so the URL has to be able to carry one.
+  const rawMin = str(sp.min)
+  const typedMinCents = rawMin ? parsePriceToCents(rawMin) : null
 
   // Paginated read: PostgREST silently truncates at the project row cap, and a catalogue
   // is exactly the kind of set that grows past it without anyone noticing.
@@ -68,14 +74,27 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   }
   const countries = [...new Set(all.map((a) => a.country))].sort()
 
-  const needle = parsed.text.toLowerCase()
+  // No model call on this path. The search box resolves a sentence into filters once, when it
+  // is submitted (see api/parse-query), and puts the result in the URL — so this render is
+  // deterministic, fast, and identical for anyone the link is sent to. `reading` is the label
+  // the model produced, carried along so the page can show what was understood.
+  const reading = str(sp.reading)
+  const q = parsed
+
+  const needle = q.text.toLowerCase()
 
   const matchesStructured = (a: Asset) => {
-    if (sector && a.sector !== sector) return false
-    if (country && a.country !== country) return false
+    // Explicit controls still win: a dropdown the user set beats anything read out of the text,
+    // whether it was read by the parser or by the model.
+    const wantSector = str(sp.sector) || q.sector
+    const wantCountry = str(sp.country) || q.country
+    if (wantSector && a.sector !== wantSector) return false
+    if (wantCountry && a.country !== wantCountry) return false
     if (kind && a.asset_kind !== kind) return false
-    if (maxCents !== null && a.asking_price_cents > maxCents) return false
-    if (parsed.minPriceCents !== null && a.asking_price_cents < parsed.minPriceCents) return false
+    const cap = typedMaxCents ?? q.maxPriceCents
+    if (cap !== null && a.asking_price_cents > cap) return false
+    const floor = typedMinCents ?? q.minPriceCents
+    if (floor !== null && a.asking_price_cents < floor) return false
     return true
   }
 
@@ -160,7 +179,12 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           </div>
         </div>
 
-        <AssetFilters counts={counts} countries={countries} canSortByFit={mandate !== null} />
+        <AssetFilters
+          counts={counts}
+          countries={countries}
+          canSortByFit={mandate !== null}
+          aiAvailable={aiEnabled()}
+        />
 
         {error ? (
           <p className="mb-4 rounded-lg border border-danger bg-danger-bg px-3 py-2 text-sm text-danger">
@@ -182,9 +206,21 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           </p>
         )}
 
+        {reading && (
+          <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-accent-text/30 bg-accent/[0.07] px-3 py-2 text-sm">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-accent-text">
+              Read as
+            </span>
+            <span className="text-muted">{reading}</span>
+            <Link href="/assets" className="ml-auto text-xs text-faint transition hover:text-fg">
+              Clear
+            </Link>
+          </p>
+        )}
+
         {textIgnored && (
           <p className="mb-4 rounded-lg border bg-surface px-3 py-2 text-sm text-muted">
-            No listing contains &ldquo;{parsed.text}&rdquo;. Showing the{' '}
+            No listing contains &ldquo;{q.text}&rdquo;. Showing the{' '}
             {structured.length === 1 ? 'listing' : 'listings'} that match the rest of your search.
           </p>
         )}

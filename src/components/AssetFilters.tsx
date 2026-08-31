@@ -11,20 +11,62 @@ export function AssetFilters({
   counts,
   countries,
   canSortByFit = false,
+  aiAvailable = false,
 }: {
   counts: Record<string, number>
   countries: string[]
   /** Only a buyer has a mandate to sort against, so only a buyer is offered the option. */
   canSortByFit?: boolean
+  /** Whether a key is configured. Without one the box is the deterministic parser, unchanged. */
+  aiAvailable?: boolean
 }) {
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
   const [q, setQ] = useState(params.get('q') ?? '')
+  const [reading, setReading] = useState(false)
 
   useEffect(() => {
     setQ(params.get('q') ?? '')
   }, [params])
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    const text = q.trim()
+    // One word is a term, not a sentence. The parser handles those perfectly and instantly.
+    if (!aiAvailable || text.split(/\s+/).length < 3) return apply({ q: text })
+
+    setReading(true)
+    try {
+      const ctrl = new AbortController()
+      const timer = setTimeout(() => ctrl.abort(), 8000)
+      const res = await fetch('/api/parse-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: text, countries }),
+        signal: ctrl.signal,
+      })
+      clearTimeout(timer)
+      const out = await res.json()
+      if (!out?.ok) return apply({ q: text })
+
+      // The resolved filters replace the sentence rather than joining it. Keeping both would
+      // filter twice: once by the model's reading and again by the parser's reading of the
+      // same words.
+      const next = new URLSearchParams()
+      if (out.sector) next.set('sector', out.sector)
+      if (out.country) next.set('country', out.country)
+      if (out.maxEur) next.set('max', String(out.maxEur))
+      if (out.minEur) next.set('min', String(out.minEur))
+      if (out.text) next.set('q', out.text)
+      next.set('reading', out.reading)
+      router.push(`${pathname}?${next.toString()}`)
+    } catch {
+      apply({ q: text })
+    } finally {
+      setReading(false)
+    }
+  }
 
   function apply(patch: Record<string, string | null>) {
     const next = new URLSearchParams(params.toString())
@@ -40,22 +82,27 @@ export function AssetFilters({
 
   return (
     <div className="mb-6 grid gap-4">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          apply({ q })
-        }}
-        className="flex gap-2"
-      >
+      {/* Submitting asks the model to turn the sentence into filters, then puts THOSE in the
+          URL — so the page that loads is deterministic and the link is shareable. Everything
+          about this is optional: no key, a failure, a timeout, and it falls back to pushing the
+          raw query, which the deterministic parser on the server handles exactly as before. */}
+      <form onSubmit={submit} className="flex gap-2">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Try: crypto licence in Poland under 500k"
+          placeholder={
+            aiAvailable
+              ? 'Try: a dormant crypto shell in eastern Europe under 250k'
+              : 'Try: crypto licence in Poland under 500k'
+          }
           className="flex-1 rounded-full border bg-field px-4 py-2 text-sm"
           aria-label="Search assets"
         />
-        <button className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-accent-fg">
-          Search
+        <button
+          disabled={reading}
+          className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-accent-fg transition hover:opacity-90 disabled:opacity-60"
+        >
+          {reading ? 'Reading…' : 'Search'}
         </button>
       </form>
 
