@@ -124,7 +124,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                 {visibleAssets.map((a) => (
                   <tr key={a.id} className="border-b last:border-0">
                     <td className="px-4 py-3">
-                      <Link href={`/assets/${a.id}`} className="hover:text-accent">
+                      <Link href={`/assets/${a.id}`} className="hover:text-accent-text">
                         {a.title}
                       </Link>
                       <p className="text-xs text-faint">#{a.public_id}</p>

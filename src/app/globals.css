@@ -15,6 +15,7 @@
   --color-faint: var(--faint);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-accent-text: var(--accent-text);
   --color-ring: var(--ring);
   --color-ok: var(--ok);
   --color-ok-bg: var(--ok-bg);
@@ -25,27 +26,36 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* Dark palette matching the N5Deal listing pages: near-black ground, panels one step
-   lighter, hairline borders, a single teal accent. */
+/* N5Deal runs on white with an indigo accent (#383bfe). This is that same brand read at
+   night: the accent is theirs, unchanged where it fills a button, lightened to #7c7fff
+   where it has to carry text on a dark ground. The ground itself is a warm-neutral
+   charcoal rather than black — a listing page is read for minutes at a time, and pure
+   black under white numerals is the fastest way to tire an eye out.
+   Every value below is checked against --app for WCAG AA at small sizes. */
 :root {
-  --app: #0e1011;
-  --surface: #16191b;
-  --elevated: #1c2023;
-  --field: #101315;
-  --line: #262c30;
-  --fg: #e8e6e3;
-  --muted: #9aa4ab;
-  /* 4.6:1 on --app, so 11px labels stay readable */
-  --faint: #737e86;
-  --accent: #19c2a0;
-  --accent-fg: #04140f;
-  --ring: #19c2a0;
-  --ok: #4ade80;
-  --ok-bg: rgba(74, 222, 128, 0.12);
+  --app: #181b20;
+  --surface: #1f232a;
+  --elevated: #262b33;
+  /* inputs sit slightly *below* the page, so a field reads as a recess, not a card */
+  --field: #14171b;
+  --line: #333942;
+  --fg: #e6e9ef;
+  /* 6.8:1 on --app */
+  --muted: #9ba3b0;
+  /* 4.7:1 on --app — the floor for 10-11px labels */
+  --faint: #7d8695;
+  /* their brand indigo, used as a fill; white on it is 6.6:1 */
+  --accent: #383bfe;
+  --accent-fg: #ffffff;
+  /* the same hue lifted until it can carry text: 5.2:1 on --app */
+  --accent-text: #7c7fff;
+  --ring: #7c7fff;
+  --ok: #34d399;
+  --ok-bg: rgba(52, 211, 153, 0.13);
   --warn: #fbbf24;
-  --warn-bg: rgba(251, 191, 36, 0.12);
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.12);
+  --warn-bg: rgba(251, 191, 36, 0.13);
+  --danger: #fb7185;
+  --danger-bg: rgba(251, 113, 133, 0.13);
 }
 
 * {

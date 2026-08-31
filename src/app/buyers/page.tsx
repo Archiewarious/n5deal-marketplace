@@ -105,7 +105,7 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
               <div className="flex justify-end border-t pt-3">
                 <Link
                   href={`/buyers/${mandate.user_id}`}
-                  className="rounded-full border px-4 py-1.5 text-xs transition hover:border-accent hover:text-accent"
+                  className="rounded-full border px-4 py-1.5 text-xs transition hover:border-accent-text hover:text-accent-text"
                 >
                   View and contact
                 </Link>

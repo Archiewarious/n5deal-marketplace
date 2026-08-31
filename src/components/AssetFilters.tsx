@@ -60,7 +60,7 @@ export function AssetFilters({
         <button
           onClick={() => apply({ sector: null })}
           className={`rounded-full border px-4 py-1.5 text-sm transition ${
-            !activeSector ? 'border-accent text-accent' : 'text-muted hover:text-fg'
+            !activeSector ? 'border-accent-text text-accent-text' : 'text-muted hover:text-fg'
           }`}
         >
           All ({total})
@@ -70,7 +70,7 @@ export function AssetFilters({
             key={s}
             onClick={() => apply({ sector: activeSector === s ? null : s })}
             className={`rounded-full border px-4 py-1.5 text-sm transition ${
-              activeSector === s ? 'border-accent text-accent' : 'text-muted hover:text-fg'
+              activeSector === s ? 'border-accent-text text-accent-text' : 'text-muted hover:text-fg'
             }`}
           >
             {s} ({counts[s] ?? 0})

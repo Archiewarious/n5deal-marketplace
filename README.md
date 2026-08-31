@@ -4,7 +4,7 @@ A working prototype of a marketplace for M&A opportunities and licensed financia
 built as a technical assignment. Three roles — Buyer, Seller, Platform Manager — each with a
 different view of the same data.
 
-**Live demo:** _(deployed URL)_
+**Live demo:** https://n5deal-marketplace-amber.vercel.app
 **Stack:** Next.js 16 (App Router) · TypeScript · Supabase (Postgres + Auth + RLS) · Tailwind v4
 
 ---

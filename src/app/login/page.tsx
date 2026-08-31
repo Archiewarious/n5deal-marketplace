@@ -43,7 +43,7 @@ export default function LoginPage() {
   return (
     <main className="flex-1 grid place-items-center px-6 py-16">
       <div className="w-full max-w-md">
-        <p className="text-accent text-xs tracking-[0.2em] uppercase mb-3">N5Deal</p>
+        <p className="text-accent-text text-xs tracking-[0.2em] uppercase mb-3">N5Deal</p>
         <h1 className="text-2xl font-semibold mb-2">Marketplace prototype</h1>
         <p className="text-muted text-sm mb-8">
           M&amp;A opportunities and licensed financial assets.
@@ -57,7 +57,7 @@ export default function LoginPage() {
                 key={d.email}
                 onClick={() => signIn(d.email, DEMO_PASSWORD)}
                 disabled={busy !== null}
-                className="flex items-center justify-between rounded-lg border bg-elevated px-4 py-3 text-left transition hover:border-accent disabled:opacity-50"
+                className="flex items-center justify-between rounded-lg border bg-elevated px-4 py-3 text-left transition hover:border-accent-text disabled:opacity-50"
               >
                 <span>
                   <span className="block text-sm">{d.label}</span>

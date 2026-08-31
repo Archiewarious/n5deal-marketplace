@@ -62,7 +62,7 @@ export default async function SellerAssetsPage() {
               {assets.map((a) => (
                 <tr key={a.id} className="border-b last:border-0">
                   <td className="px-4 py-3">
-                    <Link href={`/assets/${a.id}`} className="hover:text-accent">
+                    <Link href={`/assets/${a.id}`} className="hover:text-accent-text">
                       {a.title}
                     </Link>
                     <p className="text-xs text-faint">

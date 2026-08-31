@@ -116,12 +116,12 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
             <ul className="grid gap-2">
               {suggestions.map(({ asset, score }) => (
                 <li key={asset.id} className="flex items-center justify-between gap-3">
-                  <Link href={`/assets/${asset.id}`} className="truncate text-sm hover:text-accent">
+                  <Link href={`/assets/${asset.id}`} className="truncate text-sm hover:text-accent-text">
                     {asset.title}
                   </Link>
                   <span className="shrink-0 text-xs text-faint">
                     {formatPriceShort(asset.asking_price_cents)} ·{' '}
-                    <span className="text-accent">{score}%</span>
+                    <span className="text-accent-text">{score}%</span>
                   </span>
                 </li>
               ))}

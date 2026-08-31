@@ -92,7 +92,7 @@ export function MandateForm({
               type="button"
               onClick={() => toggleSector(s)}
               className={`rounded-full border px-4 py-1.5 text-sm transition ${
-                sectors.includes(s) ? 'border-accent text-accent' : 'text-muted hover:text-fg'
+                sectors.includes(s) ? 'border-accent-text text-accent-text' : 'text-muted hover:text-fg'
               }`}
             >
               {s}

@@ -29,7 +29,7 @@ export function TopNav({ profile }: { profile: Profile }) {
     <header className="border-b bg-surface">
       <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3">
         <Link href="/assets" className="text-sm font-semibold tracking-tight">
-          <span className="text-accent">N5</span>Deal
+          <span className="text-accent-text">N5</span>Deal
         </Link>
 
         <nav className="flex items-center gap-1 text-sm">

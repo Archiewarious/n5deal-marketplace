@@ -66,7 +66,7 @@ export function ListingStatusControl({
               ? 'text-danger hover:border-danger'
               : o.tone === 'warn'
                 ? 'text-warn hover:border-warn'
-                : 'text-muted hover:border-accent hover:text-accent'
+                : 'text-muted hover:border-accent-text hover:text-accent-text'
           }`}
         >
           {o.label}

@@ -91,7 +91,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         {match && (
           <section className="mb-6 rounded-xl border bg-surface p-5">
             <div className="mb-3 flex items-center gap-3">
-              <span className="rounded-full border border-accent px-3 py-1 text-sm text-accent">
+              <span className="rounded-full border border-accent-text px-3 py-1 text-sm text-accent-text">
                 {match.score}% match
               </span>
               <p className="text-sm text-muted">against your mandate</p>

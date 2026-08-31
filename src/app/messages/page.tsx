@@ -75,7 +75,7 @@ export default async function MessagesPage() {
                 {linked && (
                   <Link
                     href={`/assets/${linked.id}`}
-                    className="mb-2 inline-block text-sm text-accent hover:underline"
+                    className="mb-2 inline-block text-sm text-accent-text hover:underline"
                   >
                     #{linked.public_id} {linked.title}
                   </Link>
