@@ -102,6 +102,7 @@ function ValidatedSeal({ t }: { t: T }) {
 export function AssetCard({
   asset,
   t,
+  tag = 'en-GB',
   matchScore,
   showStatus = false,
   peersCents = [],
@@ -110,6 +111,8 @@ export function AssetCard({
 }: {
   asset: Asset
   t: T
+  /** Intl tag, so a price and a date follow the language the page is in. */
+  tag?: string
   matchScore?: number
   showStatus?: boolean
   /** Off for the live preview in the editor, where the row does not exist yet. */
@@ -127,13 +130,15 @@ export function AssetCard({
     // before giving up on.
     <article className="group relative overflow-hidden rounded-2xl border bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-text/40 hover:shadow-lg hover:shadow-black/5 sm:p-6">
       <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${tone.dot}`} />
-      <header className="mb-4 flex items-start gap-4">
+      {/* Wraps rather than truncates. Both side blocks are shrink-0, so on a phone the title
+          between them was squeezed to about thirteen characters. */}
+      <header className="mb-4 flex flex-wrap items-start gap-3 sm:flex-nowrap sm:gap-4">
         <span className="grid size-9 shrink-0 place-items-center rounded-full border font-mono text-sm text-muted">
           {asset.public_id}
         </span>
 
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-lg font-medium leading-tight">
+          <h2 className="text-lg font-medium leading-tight sm:truncate">
             {linked ? (
               <Link href={`/assets/${asset.id}`} className="after:absolute after:inset-0">
                 {asset.title}
@@ -152,7 +157,7 @@ export function AssetCard({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="order-last flex shrink-0 items-center gap-2 sm:order-none">
           {matchScore !== undefined && (
             <span className="rounded-full border border-accent-text px-3 py-1 font-mono text-[11px] text-accent-text">
               {t('card.match', { n: matchScore })}
@@ -229,7 +234,7 @@ export function AssetCard({
 
       <footer className="mt-4 flex items-center justify-between border-t pt-4">
         <p className="font-mono text-xs text-faint">
-          {formatDate(asset.created_at)} · {asset.views} {t('card.views')}
+          {formatDate(asset.created_at, tag)} · {asset.views} {t('card.views')}
         </p>
         {linked && (
           <Link

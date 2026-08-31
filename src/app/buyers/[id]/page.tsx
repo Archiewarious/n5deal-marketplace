@@ -2,10 +2,11 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/session'
-import { getT } from '@/lib/locale'
+import { getLocale, getT } from '@/lib/locale'
+import { intlTag } from '@/lib/i18n'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { matchAssetToBuyer } from '@/lib/matching'
-import { formatPriceShort } from '@/lib/format'
+import { formatPriceShort, formatPriceFull } from '@/lib/format'
 import { TopNav } from '@/components/TopNav'
 import { ContactForm } from '@/components/ContactForm'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
@@ -25,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function BuyerPage({ params }: { params: Promise<{ id: string }> }) {
   const profile = await requireRole('SELLER', 'MANAGER')
   const t = await getT()
+  const tag = intlTag(await getLocale())
   const { id } = await params
   const supabase = await createClient()
 
@@ -115,9 +117,9 @@ export default async function BuyerPage({ params }: { params: Promise<{ id: stri
                   {t('buyers.ticket')}
                 </p>
                 <p className="text-sm">
-                  {mandate.ticket_min_eur !== null && `€${mandate.ticket_min_eur.toLocaleString()}`}
+                  {mandate.ticket_min_eur !== null && formatPriceFull(mandate.ticket_min_eur * 100, tag)}
                   {mandate.ticket_min_eur !== null && mandate.ticket_max_eur !== null && ' – '}
-                  {mandate.ticket_max_eur !== null && `€${mandate.ticket_max_eur.toLocaleString()}`}
+                  {mandate.ticket_max_eur !== null && formatPriceFull(mandate.ticket_max_eur * 100, tag)}
                 </p>
               </div>
             </div>

@@ -7,6 +7,7 @@ import { Reveal } from '@/components/Reveal'
 import { CountUp } from '@/components/CountUp'
 import { RoleCards } from '@/components/RoleCards'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { getLocale, getT } from '@/lib/locale'
 import { intlTag } from '@/lib/i18n'
 
@@ -53,7 +54,8 @@ export default async function Home() {
         />
 
         <div className="relative mx-auto max-w-6xl">
-          <div className="absolute right-0 top-0">
+          <div className="absolute right-0 top-0 flex items-center gap-2">
+            <LanguageSwitcher />
             <ThemeToggle />
           </div>
           <p className="rise flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-faint">
@@ -122,7 +124,9 @@ export default async function Home() {
                 ].map((s) => (
                   <div key={s.k} className="border-b px-5 py-4 sm:border-b-0 sm:not-first:border-l">
                     <dt className="text-[10px] uppercase tracking-wider text-faint">{t(s.k)}</dt>
-                    <dd className="mt-1 font-mono text-2xl font-medium tabular-nums">
+                    {/* The euro total is the widest of the four and the first to overflow its
+                        cell: it needs a smaller size until there is room for the larger one. */}
+                    <dd className="mt-1 font-mono text-xl font-medium tabular-nums lg:text-2xl">
                       <CountUp value={s.n} money={s.money} tag={tag} />
                     </dd>
                   </div>

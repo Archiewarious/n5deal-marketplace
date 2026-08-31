@@ -86,7 +86,7 @@ test('every axis reports whether it hit', () => {
   const m = matchAssetToBuyer(asset({ sector: 'Bank' }), buyer())
   assert.equal(m.reasons.length, 3)
   assert.equal(m.reasons.filter((r) => r.hit).length, 2)
-  assert.ok(m.reasons.some((r) => r.label.includes('Bank') && !r.hit))
+  assert.ok(m.reasons.some((r) => r.axis === 'sector' && r.value === 'Bank' && !r.hit))
 })
 
 test('ranking puts the strongest fit first', () => {
@@ -96,4 +96,21 @@ test('ranking puts the strongest fit first', () => {
   )
   assert.equal(ranked[0].asset.id, 'strong')
   assert.equal(ranked[1].asset.id, 'weak')
+})
+
+// Regression. Jurisdictions are typed by hand into a comma-separated field while sectors are
+// chosen from buttons, so a mandate reading "lithuania , Ireland" scored zero on a Lithuanian
+// listing — the buyer saw a low match and never learned why.
+test('a jurisdiction matches regardless of case and stray spaces', () => {
+  const m = matchAssetToBuyer(
+    asset({ country: 'Lithuania' }),
+    buyer({
+      sectors: [],
+      jurisdictions: [' lithuania', 'IRELAND'],
+      ticket_min_eur: null,
+      ticket_max_eur: null,
+    }),
+  )
+  assert.equal(m.score, 100)
+  assert.ok(m.reasons.some((r) => r.axis === 'jurisdiction' && r.hit))
 })

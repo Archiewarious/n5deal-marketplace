@@ -144,7 +144,10 @@ Rules:
     QUERY_SCHEMA,
   )
 
-  if (!out?.reading) return remember(cacheKey, null)
+  // Not cached. `ask` collapses a timeout, a 429, a network drop and malformed JSON into the
+  // same null, and writing that into the cache would turn one bad second into a query that can
+  // never succeed again for the life of the process. Only an answer is worth remembering.
+  if (!out?.reading) return null
 
   // Everything below distrusts the model, because the prompt is a request and the schema is the
   // only part of it the API enforces.

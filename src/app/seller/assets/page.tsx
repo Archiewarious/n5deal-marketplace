@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/session'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { formatPriceShort, formatDate } from '@/lib/format'
-import { getT } from '@/lib/locale'
+import { getLocale, getT } from '@/lib/locale'
+import { intlTag } from '@/lib/i18n'
 import { TopNav } from '@/components/TopNav'
 import { ListingStatusControl } from '@/components/ListingStatusControl'
 import type { Asset } from '@/lib/types'
@@ -33,6 +34,7 @@ const STATE_KEY: Record<Asset['status'], string> = {
 export default async function SellerAssetsPage() {
   const profile = await requireRole('SELLER')
   const t = await getT()
+  const tag = intlTag(await getLocale())
   const supabase = await createClient()
 
   // No seller_id filter needed — the RLS policy already restricts this to own rows.
@@ -120,7 +122,7 @@ export default async function SellerAssetsPage() {
                       {a.title}
                     </Link>
                     <p className="text-xs text-faint">
-                      #{a.public_id} · {formatDate(a.created_at)}
+                      #{a.public_id} · {formatDate(a.created_at, tag)}
                     </p>
                   </td>
                   <td className="px-4 py-3">

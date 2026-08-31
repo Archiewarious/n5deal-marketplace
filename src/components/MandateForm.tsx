@@ -126,10 +126,21 @@ export function MandateForm({
               key={s}
               type="button"
               onClick={() => toggleSector(s)}
-              className={`rounded-full border px-4 py-1.5 text-sm transition ${
-                sectors.includes(s) ? 'border-accent-text text-accent-text' : 'text-muted hover:text-fg'
+              // Selected was carried by colour and nothing else, which is invisible to a screen
+              // reader and to anyone who cannot separate the two greys. aria-pressed states it,
+              // and the tick states it without colour.
+              aria-pressed={sectors.includes(s)}
+              className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm transition ${
+                sectors.includes(s)
+                  ? 'border-accent-text text-accent-text'
+                  : 'text-muted hover:text-fg'
               }`}
             >
+              {sectors.includes(s) && (
+                <span aria-hidden className="text-xs">
+                  ✓
+                </span>
+              )}
               {s}
             </button>
           ))}

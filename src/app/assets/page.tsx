@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/session'
-import { getT } from '@/lib/locale'
+import { getLocale, getT } from '@/lib/locale'
+import { intlTag } from '@/lib/i18n'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { parseQuery } from '@/lib/parseQuery'
 import { aiEnabled } from '@/lib/ai'
@@ -24,6 +25,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>
 export default async function AssetsPage({ searchParams }: { searchParams: SearchParams }) {
   const profile = await requireProfile()
   const t = await getT()
+  const tag = intlTag(await getLocale())
   const sp = await searchParams
   const supabase = await createClient()
 
@@ -179,7 +181,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
               {t('assets.valueOnPlatform')}
             </p>
             <p className="mt-0.5 font-mono text-xl font-semibold tabular-nums">
-              {formatPriceFull(all.reduce((sum, a) => sum + a.asking_price_cents, 0))}
+              {formatPriceFull(all.reduce((sum, a) => sum + a.asking_price_cents, 0), tag)}
             </p>
           </div>
         </div>
@@ -258,6 +260,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
             <div key={a.id} className="rise" style={{ animationDelay: `${Math.min(i, 6) * 60}ms` }}>
             <AssetCard
               t={t}
+              tag={tag}
               asset={a}
               matchScore={score}
               {...peerSet(a)}

@@ -26,19 +26,22 @@ export function Reveal({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [shown, setShown] = useState(false)
+  /** Whether the hiding class has been applied at all. False on the server and until mount. */
+  const [armed, setArmed] = useState(false)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
 
-    // No observer, or a visitor who asked for less motion: show it and never touch it again.
+    // No observer, or a visitor who asked for less motion: leave it alone entirely.
     if (
       typeof IntersectionObserver === 'undefined' ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     ) {
-      setShown(true)
       return
     }
+
+    setArmed(true)
 
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -54,10 +57,17 @@ export function Reveal({
     return () => io.disconnect()
   }, [])
 
+  // The hiding class is applied by the effect, never by the server render. The first version
+  // put `reveal` (opacity: 0) in the markup and took it off once the observer fired, which meant
+  // JavaScript disabled, a chunk that never arrived, or a hydration error left four fifths of
+  // the landing page invisible. Content visible is the only safe default; the cost is that the
+  // section is painted for the one frame before the effect runs.
+  const cls = armed ? `reveal ${shown ? 'reveal-in' : ''}` : ''
+
   return (
     <div
       ref={ref}
-      className={`reveal ${shown ? 'reveal-in' : ''} ${className}`}
+      className={`${cls} ${className}`}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
     >
       {children}

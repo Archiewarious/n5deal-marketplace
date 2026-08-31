@@ -201,6 +201,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                     </td>
                   </tr>
                 ))}
+                {visiblePeople.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center">
+                      <p className="text-sm text-muted">{t('admin.emptyPeople')}</p>
+                      <Link
+                        href="/admin"
+                        className="mt-3 inline-block rounded-full border px-4 py-1.5 text-sm text-accent-text transition hover:border-accent-text"
+                      >
+                        {t('admin.clear')}
+                      </Link>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -274,6 +287,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                     </td>
                   </tr>
                 ))}
+                {visibleAssets.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-10 text-center">
+                      <p className="text-sm text-muted">{t('admin.emptyListings')}</p>
+                      <Link
+                        href="/admin"
+                        className="mt-3 inline-block rounded-full border px-4 py-1.5 text-sm text-accent-text transition hover:border-accent-text"
+                      >
+                        {t('admin.clear')}
+                      </Link>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

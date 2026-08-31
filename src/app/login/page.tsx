@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { RoleCards } from '@/components/RoleCards'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { getT } from '@/lib/locale'
 
 export async function generateMetadata() {
@@ -23,7 +24,10 @@ export default async function LoginPage() {
         style={{ background: 'var(--wash)' }}
       />
 
-      <div className="absolute right-4 top-4 z-10 sm:right-6">
+      {/* Both public screens carry these. The switcher used to live only in TopNav, so a
+          first-time visitor met the product in a language they had no way to change. */}
+      <div className="absolute right-4 top-4 z-10 flex items-center gap-2 sm:right-6">
+        <LanguageSwitcher />
         <ThemeToggle />
       </div>
 

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getT } from '@/lib/locale'
+import { createClient } from '@/lib/supabase/server'
 
 /**
  * A page that ends where its last table ends reads as a screen, not as a product.
@@ -11,6 +12,18 @@ import { getT } from '@/lib/locale'
  */
 export async function SiteFooter() {
   const t = await getT()
+
+  // The footer renders on every route including the two public ones, so it cannot demand a
+  // session — but it also cannot offer everyone the same links. The buyer directory is gated to
+  // sellers and managers, and a buyer clicking it in the footer was silently bounced back to the
+  // catalogue. Read the role if there is one, and drop the link when there is not.
+  const supabase = await createClient()
+  const { data: claims } = await supabase.auth.getClaims()
+  const uid = claims?.claims?.sub
+  const { data: me } = uid
+    ? await supabase.from('profiles').select('role').eq('id', uid).maybeSingle<{ role: string }>()
+    : { data: null }
+  const canSeeBuyers = me?.role === 'SELLER' || me?.role === 'MANAGER'
   return (
     <footer className="mt-16 border-t bg-surface">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
@@ -31,11 +44,13 @@ export async function SiteFooter() {
                 {t('footer.allListings')}
               </Link>
             </li>
-            <li>
-              <Link href="/buyers" className="text-muted transition hover:text-fg">
-                {t('footer.mandates')}
-              </Link>
-            </li>
+            {canSeeBuyers && (
+              <li>
+                <Link href="/buyers" className="text-muted transition hover:text-fg">
+                  {t('footer.mandates')}
+                </Link>
+              </li>
+            )}
             <li>
               <Link href="/messages" className="text-muted transition hover:text-fg">
                 {t('nav.messages')}

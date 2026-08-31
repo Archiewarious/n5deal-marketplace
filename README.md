@@ -364,10 +364,7 @@ using the thing.
 - **Unread state on messages.** Messages are grouped into conversations with a reply box, but
   `contact_requests` has no `read_at`, so nothing distinguishes a new message from one already
   seen. It needs a column plus a policy letting only the recipient set it.
-- **Multi-language support.** Listed as a Plus in the assignment and deliberately skipped: the
-  copy is the smaller half, and doing it honestly means locale-aware price and date formatting
-  in `src/lib/format.ts` plus a decision about which language a listing itself is written in —
-  a content problem rather than a UI one.
+
 - **Accessibility.** There is a skip link, every `<main>` is a landmark, every control has an
   accessible name, and the strings that appear without a navigation — "Message sent", "Saved",
   form errors, the catalogue count — announce themselves. Contrast is measured against the

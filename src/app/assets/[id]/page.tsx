@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/session'
-import { getT } from '@/lib/locale'
+import { getLocale, getT } from '@/lib/locale'
+import { intlTag } from '@/lib/i18n'
 import { formatPriceFull, formatDate } from '@/lib/format'
 import { matchAssetToBuyer } from '@/lib/matching'
 import { TopNav } from '@/components/TopNav'
@@ -52,6 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function AssetPage({ params }: { params: Promise<{ id: string }> }) {
   const profile = await requireProfile()
   const t = await getT()
+  const tag = intlTag(await getLocale())
   const { id } = await params
   const supabase = await createClient()
 
@@ -132,7 +134,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
             {seller && (
               <p className="mt-1 text-sm text-muted">
                 {t('listing.listedBy')} {seller.company ?? seller.full_name} ·{' '}
-                {formatDate(asset.created_at)}
+                {formatDate(asset.created_at, tag)}
               </p>
             )}
           </div>
@@ -151,7 +153,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 {t('listing.askingPrice')}
               </p>
               <p className="font-mono text-2xl font-semibold tabular-nums">
-                {formatPriceFull(asset.asking_price_cents)}
+                {formatPriceFull(asset.asking_price_cents, tag)}
               </p>
             </div>
           </div>
@@ -167,8 +169,9 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
             </div>
             <ul className="grid gap-1 text-sm">
               {match.reasons.map((r) => (
-                <li key={r.label} className={r.hit ? 'text-ok' : 'text-faint'}>
-                  {r.hit ? '✓' : '✗'} {r.label}
+                <li key={r.axis} className={r.hit ? 'text-ok' : 'text-faint'}>
+                  {r.hit ? '✓' : '✗'}{' '}
+                  {r.axis === 'price' ? t('match.price') : t(`match.${r.axis}`, { value: r.value })}
                 </li>
               ))}
             </ul>

@@ -13,7 +13,15 @@
 
 import type { Asset, BuyerProfile } from './types.ts'
 
-export type MatchReason = { label: string; hit: boolean }
+/**
+ * An axis, not a sentence.
+ *
+ * These used to be English strings built here — `Sector Crypto`, `Inside ticket range` — which
+ * meant a Ukrainian listing page rendered its match reasons in English. A pure scoring module
+ * has no business owning phrasing, so it reports which axis and what value, and the page turns
+ * that into words in whatever language it is rendering.
+ */
+export type MatchReason = { axis: 'sector' | 'jurisdiction' | 'price'; value: string; hit: boolean }
 /** `score` is null when the mandate states no criteria at all — see below. */
 export type Match = { score: number | null; reasons: MatchReason[] }
 
@@ -35,14 +43,19 @@ export function matchAssetToBuyer(asset: Asset, buyer: BuyerProfile): Match {
     available += WEIGHT.sector
     const hit = buyer.sectors.includes(asset.sector)
     if (hit) earned += WEIGHT.sector
-    reasons.push({ label: `Sector ${asset.sector}`, hit })
+    reasons.push({ axis: 'sector', value: asset.sector, hit })
   }
 
   if (buyer.jurisdictions.length > 0) {
     available += WEIGHT.jurisdiction
-    const hit = buyer.jurisdictions.includes(asset.country)
+    // Sectors come from buttons over a fixed list; jurisdictions are typed by hand into a
+    // comma-separated field. "lithuania" and " Lithuania" are the same mandate to the person
+    // who wrote them, and an exact match silently scored them zero.
+    const hit = buyer.jurisdictions.some(
+      (j) => j.trim().toLowerCase() === asset.country.trim().toLowerCase(),
+    )
     if (hit) earned += WEIGHT.jurisdiction
-    reasons.push({ label: `Jurisdiction ${asset.country}`, hit })
+    reasons.push({ axis: 'jurisdiction', value: asset.country, hit })
   }
 
   const { ticket_min_eur: min, ticket_max_eur: max } = buyer
@@ -52,7 +65,7 @@ export function matchAssetToBuyer(asset: Asset, buyer: BuyerProfile): Match {
     const priceEur = asset.asking_price_cents / 100
     const hit = (min === null || priceEur >= min) && (max === null || priceEur <= max)
     if (hit) earned += WEIGHT.price
-    reasons.push({ label: 'Inside ticket range', hit })
+    reasons.push({ axis: 'price', value: '', hit })
   }
 
   if (available === 0) return { score: null, reasons: [] }

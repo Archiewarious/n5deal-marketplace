@@ -464,6 +464,13 @@ const en: Dict = {
   'admin.filterByRole': 'Filter by role',
   'admin.filterByStatus': 'Filter by status',
   'admin.filterListingsByStatus': 'Filter listings by status',
+  // second pass: strings the first sweep found without a key
+  'match.sector': 'Sector {value}',
+  'match.jurisdiction': 'Jurisdiction {value}',
+  'match.price': 'Inside ticket range',
+  'admin.emptyPeople': 'No participant matches this search.',
+  'admin.emptyListings': 'No listing matches this search.',
+  'admin.clear': 'Clear the filters',
 }
 
 const uk: Dict = {
@@ -875,6 +882,12 @@ const uk: Dict = {
   'admin.filterByRole': 'Фільтр за роллю',
   'admin.filterByStatus': 'Фільтр за статусом',
   'admin.filterListingsByStatus': 'Фільтр оголошень за статусом',
+  'match.sector': 'Категорія {value}',
+  'match.jurisdiction': 'Юрисдикція {value}',
+  'match.price': 'У межах чека',
+  'admin.emptyPeople': 'Під цей пошук не підходить жоден учасник.',
+  'admin.emptyListings': 'Під цей пошук не підходить жодне оголошення.',
+  'admin.clear': 'Скинути фільтри',
 }
 
 const ru: Dict = {
@@ -1286,6 +1299,12 @@ const ru: Dict = {
   'admin.filterByRole': 'Фильтр по роли',
   'admin.filterByStatus': 'Фильтр по статусу',
   'admin.filterListingsByStatus': 'Фильтр объявлений по статусу',
+  'match.sector': 'Категория {value}',
+  'match.jurisdiction': 'Юрисдикция {value}',
+  'match.price': 'В пределах чека',
+  'admin.emptyPeople': 'Под этот поиск не подходит ни один участник.',
+  'admin.emptyListings': 'Под этот поиск не подходит ни одно объявление.',
+  'admin.clear': 'Сбросить фильтры',
 }
 
 const DICT: Record<Locale, Dict> = { en, uk, ru }
