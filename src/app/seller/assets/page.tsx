@@ -6,6 +6,7 @@ import { formatPriceShort, formatDate } from '@/lib/format'
 import { TopNav } from '@/components/TopNav'
 import { ListingStatusControl } from '@/components/ListingStatusControl'
 import type { Asset } from '@/lib/types'
+import { LoadWarning } from '@/components/LoadWarning'
 
 const STATE_STYLE: Record<Asset['status'], string> = {
   PUBLISHED: 'text-ok bg-ok-bg',
@@ -20,7 +21,7 @@ export default async function SellerAssetsPage() {
 
   // No seller_id filter needed — the RLS policy already restricts this to own rows.
   // It is written explicitly anyway, so the intent is readable without opening the schema.
-  const { data: assets } = await fetchAllRows<Asset>((from, to) =>
+  const { data: assets, error: assetsError } = await fetchAllRows<Asset>((from, to) =>
     supabase
       .from('assets')
       .select('*')
@@ -45,6 +46,8 @@ export default async function SellerAssetsPage() {
             Publish an asset
           </Link>
         </div>
+
+        <LoadWarning what="Your listings" error={assetsError} />
 
         <div className="overflow-x-auto rounded-xl border bg-surface">
           <table className="w-full text-sm">

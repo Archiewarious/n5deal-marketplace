@@ -7,6 +7,7 @@ import { TopNav } from '@/components/TopNav'
 import { ListingStatusControl } from '@/components/ListingStatusControl'
 import { ParticipantStatusControl } from '@/components/ParticipantStatusControl'
 import type { Asset, Profile } from '@/lib/types'
+import { LoadWarning } from '@/components/LoadWarning'
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
@@ -20,26 +21,40 @@ const STATE_STYLE: Record<Asset['status'], string> = {
 export default async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
   const profile = await requireRole('MANAGER')
   const sp = await searchParams
-  const q = String((Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? '').toLowerCase()
+  const str = (v: string | string[] | undefined) => String((Array.isArray(v) ? v[0] : v) ?? '')
+  // Two tables, two searches. One shared box meant narrowing the participant list also gutted
+  // the listing list, and a manager comparing a seller against their listings lost one of the
+  // two halves on every keystroke.
+  const pq = str(sp.pq).toLowerCase()
+  const aq = str(sp.aq).toLowerCase()
+  const pStatus = str(sp.pstatus)
+  const pRole = str(sp.prole)
+  const aStatus = str(sp.astatus)
   const supabase = await createClient()
 
   // A manager's read is unfiltered on purpose: the RLS policy for MANAGER returns every
   // row, including drafts and removed listings, which is the whole point of this screen.
-  const { data: people } = await fetchAllRows<Profile>((from, to) =>
+  const { data: people, error: peopleError } = await fetchAllRows<Profile>((from, to) =>
     supabase.from('profiles').select('*').order('created_at').range(from, to),
   )
-  const { data: assets } = await fetchAllRows<Asset>((from, to) =>
+  const { data: assets, error: assetsError } = await fetchAllRows<Asset>((from, to) =>
     supabase.from('assets').select('*').order('created_at', { ascending: false }).range(from, to),
   )
 
   const byId = new Map(people.map((p) => [p.id, p]))
-  const match = (s: string | null | undefined) => !q || (s ?? '').toLowerCase().includes(q)
+  const hit = (needle: string, ...fields: (string | null | undefined)[]) =>
+    !needle || fields.some((f) => (f ?? '').toLowerCase().includes(needle))
 
   const visiblePeople = people.filter(
-    (p) => match(p.full_name) || match(p.company) || match(p.email) || match(p.role),
+    (p) =>
+      hit(pq, p.full_name, p.company, p.email, p.role) &&
+      (!pStatus || p.status === pStatus) &&
+      (!pRole || p.role === pRole),
   )
   const visibleAssets = assets.filter(
-    (a) => match(a.title) || match(a.country) || match(a.sector) || match(a.license_type),
+    (a) =>
+      hit(aq, a.title, a.country, a.sector, a.license_type, a.regulator) &&
+      (!aStatus || a.status === aStatus),
   )
 
   return (
@@ -49,20 +64,37 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         <p className="text-xs text-faint">N5Deal / Administration</p>
         <h1 className="mb-6 text-xl font-semibold">Participants and listings</h1>
 
-        <form className="mb-6">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search participants and listings"
-            className="w-full max-w-md rounded-full border bg-field px-4 py-2 text-sm"
-            aria-label="Search"
-          />
-        </form>
+        <LoadWarning what="The participant list" error={peopleError} />
+        <LoadWarning what="The listing table" error={assetsError} />
 
         <section className="mb-10">
           <h2 className="mb-3 text-sm font-medium">
-            Participants <span className="text-faint">({visiblePeople.length})</span>
+            Participants <span className="text-faint">({visiblePeople.length} of {people.length})</span>
           </h2>
+
+          {/* Plain GET forms: no client state, the filter lives in the URL and the view is
+              shareable. Each table keeps its own parameters so one search never empties the other. */}
+          <form className="mb-3 flex flex-wrap gap-2">
+            <input name="pq" defaultValue={pq} placeholder="Search participants"
+              aria-label="Search participants"
+              className="min-w-56 flex-1 rounded-full border bg-field px-4 py-2 text-sm" />
+            <select name="prole" defaultValue={pRole} aria-label="Filter by role"
+              className="rounded-lg border bg-field px-3 py-2 text-sm">
+              <option value="">Any role</option>
+              <option value="BUYER">Buyer</option>
+              <option value="SELLER">Seller</option>
+              <option value="MANAGER">Manager</option>
+            </select>
+            <select name="pstatus" defaultValue={pStatus} aria-label="Filter by status"
+              className="rounded-lg border bg-field px-3 py-2 text-sm">
+              <option value="">Any status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="SUSPENDED">Suspended</option>
+            </select>
+            {aq && <input type="hidden" name="aq" value={aq} />}
+            {aStatus && <input type="hidden" name="astatus" value={aStatus} />}
+            <button className="rounded-full border px-4 py-2 text-sm text-muted transition hover:text-fg">Apply</button>
+          </form>
           <div className="overflow-x-auto rounded-xl border bg-surface">
             <table className="w-full text-sm">
               <thead>
@@ -106,8 +138,26 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
         <section>
           <h2 className="mb-3 text-sm font-medium">
-            Listings <span className="text-faint">({visibleAssets.length})</span>
+            Listings <span className="text-faint">({visibleAssets.length} of {assets.length})</span>
           </h2>
+
+          <form className="mb-3 flex flex-wrap gap-2">
+            <input name="aq" defaultValue={aq} placeholder="Search listings"
+              aria-label="Search listings"
+              className="min-w-56 flex-1 rounded-full border bg-field px-4 py-2 text-sm" />
+            <select name="astatus" defaultValue={aStatus} aria-label="Filter listings by status"
+              className="rounded-lg border bg-field px-3 py-2 text-sm">
+              <option value="">Any status</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="DRAFT">Draft</option>
+              <option value="SUSPENDED">Suspended</option>
+              <option value="REMOVED">Removed</option>
+            </select>
+            {pq && <input type="hidden" name="pq" value={pq} />}
+            {pRole && <input type="hidden" name="prole" value={pRole} />}
+            {pStatus && <input type="hidden" name="pstatus" value={pStatus} />}
+            <button className="rounded-full border px-4 py-2 text-sm text-muted transition hover:text-fg">Apply</button>
+          </form>
           <div className="overflow-x-auto rounded-xl border bg-surface">
             <table className="w-full text-sm">
               <thead>

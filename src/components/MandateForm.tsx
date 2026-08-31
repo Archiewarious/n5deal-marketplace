@@ -3,17 +3,18 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { SECTORS, type BuyerProfile } from '@/lib/types'
+import { SECTORS, type BuyerProfile, type Profile } from '@/lib/types'
 
 const input = 'rounded-lg border bg-field px-3 py-2 text-sm'
 
 export function MandateForm({
-  userId,
+  profile,
   mandate,
 }: {
-  userId: string
+  profile: Profile
   mandate: BuyerProfile | null
 }) {
+  const userId = profile.id
   const router = useRouter()
   const [sectors, setSectors] = useState<string[]>(mandate?.sectors ?? [])
   const [busy, setBusy] = useState(false)
@@ -35,6 +36,22 @@ export function MandateForm({
     const num = (k: string) => (get(k) ? Number(get(k)) : null)
 
     const supabase = createClient()
+
+    // The assignment asks a buyer to 'create and maintain their profile' as well as describe
+    // their interests. Those are two tables, so this is two writes: identity on profiles,
+    // mandate on buyer_profiles. The identity write goes first — if it fails, the mandate is
+    // not saved either, and the user is not left believing both landed.
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ full_name: get('full_name'), company: get('company') || null })
+      .eq('id', userId)
+
+    if (profileError) {
+      setBusy(false)
+      setError(profileError.message)
+      return
+    }
+
     // Upsert, because a buyer may not have a mandate row yet. The primary key is user_id,
     // so this is a single round trip either way.
     const { error } = await supabase.from('buyer_profiles').upsert({
@@ -61,7 +78,23 @@ export function MandateForm({
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-4">
+    <form onSubmit={submit} className="grid gap-6">
+      <fieldset className="grid gap-4">
+        <legend className="mb-2 text-sm font-medium">Who you are</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="grid gap-1.5">
+            <span className="text-xs text-muted">Full name</span>
+            <input name="full_name" required defaultValue={profile.full_name} className={input} />
+          </label>
+          <label className="grid gap-1.5">
+            <span className="text-xs text-muted">Company</span>
+            <input name="company" defaultValue={profile.company ?? ''} className={input} placeholder="Harbour Capital" />
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset className="grid gap-4">
+        <legend className="mb-2 text-sm font-medium">What you are looking for</legend>
       <label className="grid gap-1.5">
         <span className="text-xs text-muted">Headline</span>
         <input
@@ -137,6 +170,7 @@ export function MandateForm({
           />
         </label>
       </div>
+      </fieldset>
 
       {error && (
         <p className="rounded-lg border border-danger bg-danger-bg px-3 py-2 text-sm text-danger">
@@ -149,7 +183,7 @@ export function MandateForm({
           disabled={busy}
           className="rounded-full bg-accent px-6 py-2 text-sm font-medium text-accent-fg disabled:opacity-50"
         >
-          {busy ? 'Saving…' : 'Save mandate'}
+          {busy ? 'Saving…' : 'Save'}
         </button>
         {saved && <span className="text-sm text-ok">Saved.</span>}
       </div>

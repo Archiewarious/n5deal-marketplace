@@ -4,6 +4,7 @@ import { requireProfile } from '@/lib/session'
 import { fetchAllRows } from '@/lib/fetchAllRows'
 import { TopNav } from '@/components/TopNav'
 import type { Asset, ContactRequest, Profile } from '@/lib/types'
+import { LoadWarning } from '@/components/LoadWarning'
 
 export default async function MessagesPage() {
   const profile = await requireProfile()
@@ -12,7 +13,7 @@ export default async function MessagesPage() {
   // No filter on from/to: the RLS policy already limits this to messages the caller is a
   // party to — or everything, if the caller is a manager. Writing the filter here as well
   // would silently break the manager's view.
-  const { data: messages } = await fetchAllRows<ContactRequest>((from, to) =>
+  const { data: messages, error: messagesError } = await fetchAllRows<ContactRequest>((from, to) =>
     supabase
       .from('contact_requests')
       .select('*')
@@ -49,6 +50,8 @@ export default async function MessagesPage() {
             ? 'Every message exchanged on the platform.'
             : 'Messages you sent and received.'}
         </p>
+
+        <LoadWarning what="Your messages" error={messagesError} />
 
         <div className="grid gap-3">
           {messages.map((m) => {

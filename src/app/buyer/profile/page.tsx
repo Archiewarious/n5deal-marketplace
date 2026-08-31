@@ -19,11 +19,11 @@ export default async function BuyerProfilePage() {
       <TopNav profile={profile} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
         <p className="text-xs text-faint">N5Deal / My mandate</p>
-        <h1 className="mb-1 text-xl font-semibold">What you are looking for</h1>
+        <h1 className="mb-1 text-xl font-semibold">Your profile and mandate</h1>
         <p className="mb-6 text-sm text-muted">
           Sellers browse this, and the catalogue sorts listings by how well they fit it.
         </p>
-        <MandateForm userId={profile.id} mandate={mandate} />
+        <MandateForm profile={profile} mandate={mandate} />
       </main>
     </>
   )

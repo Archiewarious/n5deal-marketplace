@@ -105,8 +105,18 @@ export function AssetFilters({
         </select>
 
         <input
+          // key ties the field to the URL: without it React keeps the old DOM node on Reset
+          // and the cleared value creeps back on the next filter change.
+          key={params.get('max') ?? ''}
           defaultValue={params.get('max') ?? ''}
           onBlur={(e) => apply({ max: e.target.value })}
+          // Enter is what people press in a text field; without this it did nothing at all.
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              apply({ max: e.currentTarget.value })
+            }
+          }}
           placeholder="Max price, e.g. 2.5M"
           className="w-40 rounded-lg border bg-field px-3 py-1.5 text-sm"
           aria-label="Maximum price"

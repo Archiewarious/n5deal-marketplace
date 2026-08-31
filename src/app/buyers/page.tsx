@@ -5,6 +5,7 @@ import { fetchAllRows } from '@/lib/fetchAllRows'
 import { TopNav } from '@/components/TopNav'
 import { BuyerFilters } from '@/components/BuyerFilters'
 import type { BuyerProfile, Profile } from '@/lib/types'
+import { LoadWarning } from '@/components/LoadWarning'
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
@@ -14,10 +15,10 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
   const supabase = await createClient()
   const str = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? ''
 
-  const { data: mandates } = await fetchAllRows<BuyerProfile>((from, to) =>
+  const { data: mandates, error: mandatesError } = await fetchAllRows<BuyerProfile>((from, to) =>
     supabase.from('buyer_profiles').select('*').range(from, to),
   )
-  const { data: people } = await fetchAllRows<Profile>((from, to) =>
+  const { data: people, error: peopleError } = await fetchAllRows<Profile>((from, to) =>
     supabase.from('profiles').select('*').eq('role', 'BUYER').range(from, to),
   )
 
@@ -55,6 +56,8 @@ export default async function BuyersPage({ searchParams }: { searchParams: Searc
             What each buyer is looking for, so you can approach the right counterparty.
           </p>
         </div>
+
+        <LoadWarning what="The buyer directory" error={mandatesError ?? peopleError} />
 
         <BuyerFilters sectors={allSectors} jurisdictions={allJurisdictions} />
 
