@@ -1,0 +1,83 @@
+// Turns one free-text search box into structured filters.
+//
+// "crypto licence in poland under 500k" becomes
+//   { sector: 'Crypto', country: 'Poland', maxPriceCents: 50_000_000, text: 'licence' }
+//
+// This is the place where language actually has to be understood, so it is the place
+// where a model would earn its keep. It is written as a deterministic parser instead,
+// for the same reason as matching.ts: the reviewer has no API key, and a search box that
+// silently fails without one is worse than no search box. The vocabulary is closed — five
+// sectors, a known set of jurisdictions, a handful of price phrasings — so a parser covers
+// it. If the vocabulary grew open-ended, this is the first function to hand to an LLM,
+// keeping this implementation as the offline fallback.
+
+import { SECTORS } from './types'
+import { parsePriceToCents } from './format'
+
+export type ParsedQuery = {
+  sector: string | null
+  country: string | null
+  maxPriceCents: number | null
+  minPriceCents: number | null
+  text: string
+}
+
+const KNOWN_COUNTRIES = [
+  'Canada', 'Australia', 'Lithuania', 'Estonia', 'United Kingdom', 'Poland', 'Malta',
+  'Switzerland', 'Czechia', 'Ireland', 'Germany', 'Netherlands', 'Luxembourg', 'Cyprus',
+  'Georgia', 'Seychelles',
+]
+
+// Words that carry structure, not meaning — dropped from the leftover text search.
+const NOISE = new Set(['in', 'the', 'a', 'an', 'for', 'with', 'and', 'of', 'under', 'below', 'over', 'above', 'from', 'to', 'up'])
+
+export function parseQuery(input: string): ParsedQuery {
+  const original = input.trim()
+  if (!original) return { sector: null, country: null, maxPriceCents: null, minPriceCents: null, text: '' }
+
+  let rest = ` ${original} `
+  const lower = () => rest.toLowerCase()
+
+  let sector: string | null = null
+  for (const s of SECTORS) {
+    const re = new RegExp(`\\b${s}\\b`, 'i')
+    if (re.test(lower())) {
+      sector = s
+      rest = rest.replace(re, ' ')
+      break
+    }
+  }
+
+  let country: string | null = null
+  for (const c of KNOWN_COUNTRIES) {
+    const re = new RegExp(`\\b${c}\\b`, 'i')
+    if (re.test(rest)) {
+      country = c
+      rest = rest.replace(re, ' ')
+      break
+    }
+  }
+
+  // "under 500k", "below 2.5m", "over 100k"
+  let maxPriceCents: number | null = null
+  let minPriceCents: number | null = null
+  const under = rest.match(/\b(?:under|below|max|up to)\s+([\d.,\s]+[km]?)/i)
+  if (under) {
+    maxPriceCents = parsePriceToCents(under[1])
+    rest = rest.replace(under[0], ' ')
+  }
+  const over = rest.match(/\b(?:over|above|min|from)\s+([\d.,\s]+[km]?)/i)
+  if (over) {
+    minPriceCents = parsePriceToCents(over[1])
+    rest = rest.replace(over[0], ' ')
+  }
+
+  const text = rest
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter((w) => w && !NOISE.has(w.toLowerCase()))
+    .join(' ')
+    .trim()
+
+  return { sector, country, maxPriceCents, minPriceCents, text }
+}

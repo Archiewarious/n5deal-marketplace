@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@source "../**/*.{ts,tsx}";
+
+/* Semantic tokens -> Tailwind utilities. `inline` keeps the reference to the CSS variable,
+   so one palette drives every component and there are no hardcoded colours in JSX. */
+@theme inline {
+  --color-app: var(--app);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-field: var(--field);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-ring: var(--ring);
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Dark palette matching the N5Deal listing pages: near-black ground, panels one step
+   lighter, hairline borders, a single teal accent. */
+:root {
+  --app: #0e1011;
+  --surface: #16191b;
+  --elevated: #1c2023;
+  --field: #101315;
+  --line: #262c30;
+  --fg: #e8e6e3;
+  --muted: #9aa4ab;
+  /* 4.6:1 on --app, so 11px labels stay readable */
+  --faint: #737e86;
+  --accent: #19c2a0;
+  --accent-fg: #04140f;
+  --ring: #19c2a0;
+  --ok: #4ade80;
+  --ok-bg: rgba(74, 222, 128, 0.12);
+  --warn: #fbbf24;
+  --warn-bg: rgba(251, 191, 36, 0.12);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.12);
+}
+
+* {
+  border-color: var(--line);
+}
+
+body {
+  background: var(--app);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Focus ring defined once; every interactive element inherits it. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+::placeholder {
+  color: var(--faint);
+}
