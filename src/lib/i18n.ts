@@ -483,6 +483,8 @@ const en: Dict = {
   'assets.showing': 'Showing {from}–{to} of {shown} listings',
   // second pass: strings the first sweep found without a key
   'page.goTo': 'Page {n}',
+  // second pass: strings the first sweep found without a key
+  'login.onPlatform': 'on the platform',
 }
 
 const uk: Dict = {
@@ -909,6 +911,7 @@ const uk: Dict = {
   'page.next': 'Далі',
   'assets.showing': 'Показано {from}–{to} із {shown}',
   'page.goTo': 'Сторінка {n}',
+  'login.onPlatform': 'на платформі',
 }
 
 const ru: Dict = {
@@ -1335,6 +1338,7 @@ const ru: Dict = {
   'page.next': 'Дальше',
   'assets.showing': 'Показано {from}–{to} из {shown}',
   'page.goTo': 'Страница {n}',
+  'login.onPlatform': 'на платформе',
 }
 
 const DICT: Record<Locale, Dict> = { en, uk, ru }

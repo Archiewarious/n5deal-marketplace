@@ -146,7 +146,10 @@ export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
               disabled={busy !== null}
               aria-label={`${t('login.enterAs', { role: t(r.title) })}, ${r.company}`}
               style={{ animationDelay: `${80 + i * 90}ms` }}
-              className={`group rise relative overflow-hidden rounded-2xl border bg-surface p-6 text-left transition duration-200 hover:-translate-y-1 disabled:opacity-50 ${tone.border}`}
+              // flex-col plus mt-auto on the last row: the three blurbs are two, two and three
+              // lines long, so without this the divider, the bullet list and the call to action
+              // each sat at a different height in each card and the row read as crooked.
+              className={`group rise relative flex flex-col overflow-hidden rounded-2xl border bg-surface p-6 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 disabled:opacity-50 ${tone.border}`}
             >
               <span
                 aria-hidden
@@ -163,9 +166,11 @@ export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
               <p className="mt-1 text-lg font-medium">{r.company}</p>
               <p className="text-sm text-faint">{r.person}</p>
 
-              <p className="mt-4 text-sm leading-relaxed text-muted">{t(r.blurb)}</p>
+              {/* Reserved height rather than natural height, so the rule under it is the same
+                  line in all three cards. Three lines is the longest of the three blurbs. */}
+              <p className="mt-4 min-h-[4.5rem] text-sm leading-relaxed text-muted">{t(r.blurb)}</p>
 
-              <ul className="mt-5 space-y-2 border-t pt-4">
+              <ul className="mt-1 space-y-2 border-t pt-4">
                 {r.can.map((c) => (
                   <li key={c} className="flex items-start gap-2.5 text-sm text-muted">
                     <span
@@ -176,7 +181,7 @@ export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
                 ))}
               </ul>
 
-              <span className={`mt-5 flex items-center gap-1.5 text-sm ${tone.text}`}>
+              <span className={`mt-auto flex items-center gap-1.5 pt-5 text-sm ${tone.text}`}>
                 {busy === r.email ? t('login.entering') : t('login.enterAs', { role: t(r.title) })}
                 <span aria-hidden className="transition-transform group-hover:translate-x-1">
                   →
@@ -189,14 +194,14 @@ export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
 
       {showExtras && (
         <div
-          className="rise mt-4 grid gap-4 sm:grid-cols-[1fr_auto]"
+          className="rise mt-4 grid items-stretch gap-4 sm:grid-cols-[1.6fr_1fr]"
           style={{ animationDelay: '360ms' }}
         >
           <button
             onClick={() => signIn('buyer.solace@n5demo.com', DEMO_PASSWORD)}
             disabled={busy !== null}
             aria-label={t('login.enterSuspended')}
-            className="rounded-2xl border border-dashed bg-surface/50 px-5 py-4 text-left text-sm transition hover:border-danger disabled:opacity-50"
+            className="rounded-2xl border border-dashed bg-surface/50 px-5 py-4 text-left text-sm leading-relaxed transition hover:border-danger disabled:opacity-50"
           >
             <span className="text-danger">{t('login.suspendedTitle')}</span>
             <span className="text-muted">
@@ -205,7 +210,7 @@ export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
             </span>
           </button>
 
-          <details className="rounded-2xl border bg-surface/50 px-5 py-4">
+          <details className="rounded-2xl border bg-surface/50 px-5 py-4 [&[open]]:bg-surface">
             <summary className="cursor-pointer text-sm text-muted">{t('login.useEmail')}</summary>
             <form
               className="mt-4 grid gap-2"
