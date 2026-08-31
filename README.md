@@ -164,10 +164,50 @@ looked correct in the editor.
 
 ---
 
+## Tests
+
+```bash
+npm test
+```
+
+Nineteen tests over the three pure modules — `parseQuery`, `format`, `matching` — run on Node's
+built-in test runner. No framework, no dependency: the whole suite is `node --test`, which is why
+`.ts` extensions appear in the internal imports.
+
+They cover the parts where being wrong is silent rather than loud: price parsing that must return
+`null` instead of `0` for junk, boundary prices that sit exactly on a mandate's limit, an empty
+mandate axis that has to match everything rather than nothing, and the weighting of each match
+axis. One of them is a regression test — see below.
+
+## The defect that clicking found and the build did not
+
+The placeholder in the search box reads *crypto licence in Poland under 500k*. Typing exactly
+that returned **zero results**, while a Polish VASP at €220K sat in the catalogue matching all
+three axes.
+
+The parser had done its job: sector `Crypto`, country `Poland`, ceiling €500K. The leftover word
+`licence` then became a hard AND against the listing text, and that word appears nowhere in that
+listing. So the first thing a reviewer would do — type the suggested query — produced an empty
+screen.
+
+Two changes, both in the repo:
+
+- category nouns (`licence`, `asset`, `business`, `company`, …) are now noise, because they name
+  the thing being searched rather than narrowing it;
+- leftover words are a refinement, not a requirement. If they would empty a result set that the
+  structured half of the same query found, they are dropped and the user is told why.
+
+The same pass caught a second one: a price the parser cannot read — `abc` in the max-price field —
+used to be discarded silently, so the catalogue showed everything while the user believed a cap
+was applied. It now says so.
+
+Neither was visible to `tsc` or to a green production build. Both took one minute of actually
+using the thing.
+
+---
+
 ## What I would do with more time
 
-- **Tests.** `matching.ts`, `format.ts` and `parseQuery.ts` are pure functions with obvious
-  edge cases and no tests. That is the first gap I would close.
 - **Server-side filtering.** The catalogue filters in memory after a full read. Correct for
   sixteen listings, wrong for sixteen thousand — the filters map cleanly onto PostgREST query
   parameters, and the pagination helper is already there.
@@ -176,5 +216,7 @@ looked correct in the editor.
 - **A real conversation model,** replacing single messages with threads and unread state.
 - **Listing edit.** A seller can create and unpublish but not edit; the form exists, only the
   update path is missing.
-- **Accessibility pass.** Labels and focus rings are in place, but nothing has been through a
+- **Accessibility pass.** Form controls have labels and the demo sign-in buttons now have
+  accessible names (the accessibility tree read four unnamed buttons before). Nothing has yet
+  been through a
   screen reader or a keyboard-only run.

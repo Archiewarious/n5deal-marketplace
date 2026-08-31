@@ -9,6 +9,9 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    // Explicit .ts extensions let `node --test` run the suite directly, with no test runner
+    // dependency. Next.js and tsc both accept them under bundler resolution.
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",

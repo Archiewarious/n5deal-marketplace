@@ -11,7 +11,7 @@
 // The score is deliberately explainable: the UI shows the reasons, not just a percentage,
 // because a buyer will not act on a number they cannot check.
 
-import type { Asset, BuyerProfile } from './types'
+import type { Asset, BuyerProfile } from './types.ts'
 
 export type MatchReason = { label: string; hit: boolean }
 export type Match = { score: number; reasons: MatchReason[] }

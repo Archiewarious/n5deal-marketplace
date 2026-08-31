@@ -57,6 +57,9 @@ export default function LoginPage() {
                 key={d.email}
                 onClick={() => signIn(d.email, DEMO_PASSWORD)}
                 disabled={busy !== null}
+                // Without this the accessibility tree reads four unnamed buttons: the label text
+                // lives in nested spans, which a screen reader does not assemble into a name.
+                aria-label={`Sign in as ${d.label}, ${d.hint}`}
                 className="flex items-center justify-between rounded-lg border bg-elevated px-4 py-3 text-left transition hover:border-accent-text disabled:opacity-50"
               >
                 <span>

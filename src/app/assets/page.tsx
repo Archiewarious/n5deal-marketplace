@@ -24,7 +24,13 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   const sector = str(sp.sector) || parsed.sector
   const country = str(sp.country) || parsed.country
   const kind = str(sp.kind)
-  const maxCents = parsePriceToCents(str(sp.max)) ?? parsed.maxPriceCents
+  // A price the parser cannot read must not disappear silently. Filtering as if the field were
+  // empty is the worst of the three options: the user sees every listing and believes the cap
+  // was applied. The value is kept and reported instead.
+  const rawMax = str(sp.max)
+  const typedMaxCents = rawMax ? parsePriceToCents(rawMax) : null
+  const maxPriceUnreadable = Boolean(rawMax) && typedMaxCents === null
+  const maxCents = typedMaxCents ?? parsed.maxPriceCents
 
   // Paginated read: PostgREST silently truncates at the project row cap, and a catalogue
   // is exactly the kind of set that grows past it without anyone noticing.
@@ -42,20 +48,33 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   const countries = [...new Set(all.map((a) => a.country))].sort()
 
   const needle = parsed.text.toLowerCase()
-  const visible = all.filter((a) => {
+
+  const matchesStructured = (a: Asset) => {
     if (sector && a.sector !== sector) return false
     if (country && a.country !== country) return false
     if (kind && a.asset_kind !== kind) return false
     if (maxCents !== null && a.asking_price_cents > maxCents) return false
     if (parsed.minPriceCents !== null && a.asking_price_cents < parsed.minPriceCents) return false
-    if (needle) {
-      const hay = [a.title, a.description, a.license_type, a.regulator, ...a.included_activities]
-        .join(' ')
-        .toLowerCase()
-      if (!hay.includes(needle)) return false
-    }
     return true
-  })
+  }
+
+  const matchesText = (a: Asset) => {
+    if (!needle) return true
+    const hay = [a.title, a.description, a.license_type, a.regulator, ...a.included_activities]
+      .join(' ')
+      .toLowerCase()
+    return hay.includes(needle)
+  }
+
+  const structured = all.filter(matchesStructured)
+  const narrowed = structured.filter(matchesText)
+
+  // The leftover words of a free-text query are a refinement, not a requirement. If they would
+  // empty a result set that the structured part of the same query found, the words are dropped
+  // and the user is told — "crypto in Poland under 500k" should never return nothing just
+  // because a stray adjective is absent from the listing text.
+  const textIgnored = Boolean(needle) && narrowed.length === 0 && structured.length > 0
+  const visible = textIgnored ? structured : narrowed
 
   // A buyer sees how well each listing fits their own mandate.
   let mandate: BuyerProfile | null = null
@@ -95,6 +114,20 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           <p className="mb-4 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
             Your account is suspended, so published listings are hidden from you. Contact the
             platform manager to restore access.
+          </p>
+        )}
+
+        {maxPriceUnreadable && (
+          <p className="mb-4 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
+            &ldquo;{rawMax}&rdquo; could not be read as a price, so no price cap was applied. Try
+            2.5M, 400K or 40000.
+          </p>
+        )}
+
+        {textIgnored && (
+          <p className="mb-4 rounded-lg border bg-surface px-3 py-2 text-sm text-muted">
+            No listing contains &ldquo;{parsed.text}&rdquo;. Showing the{' '}
+            {structured.length === 1 ? 'listing' : 'listings'} that match the rest of your search.
           </p>
         )}
 

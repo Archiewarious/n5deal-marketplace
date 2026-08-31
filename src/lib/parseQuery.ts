@@ -11,8 +11,8 @@
 // it. If the vocabulary grew open-ended, this is the first function to hand to an LLM,
 // keeping this implementation as the offline fallback.
 
-import { SECTORS } from './types'
-import { parsePriceToCents } from './format'
+import { SECTORS } from './types.ts'
+import { parsePriceToCents } from './format.ts'
 
 export type ParsedQuery = {
   sector: string | null
@@ -29,7 +29,21 @@ const KNOWN_COUNTRIES = [
 ]
 
 // Words that carry structure, not meaning — dropped from the leftover text search.
-const NOISE = new Set(['in', 'the', 'a', 'an', 'for', 'with', 'and', 'of', 'under', 'below', 'over', 'above', 'from', 'to', 'up'])
+//
+// The category nouns in the second group are the ones that actually broke this in testing.
+// "crypto licence in Poland under 500k" — the placeholder text of the search box itself —
+// returned nothing: sector, country and price were all extracted correctly, then the leftover
+// word "licence" became a hard AND against the listing text, and the Polish VASP that matched
+// on all three axes does not contain that word anywhere. A reviewer typing the suggested query
+// would have seen an empty screen. Every word here names the thing being searched rather than
+// narrowing it, so none of them belong in a text match.
+const NOISE = new Set([
+  'in', 'the', 'a', 'an', 'for', 'with', 'and', 'of', 'under', 'below', 'over', 'above',
+  'from', 'to', 'up',
+  'licence', 'licences', 'license', 'licenses', 'licensed',
+  'asset', 'assets', 'business', 'businesses', 'company', 'companies',
+  'structure', 'structures', 'entity', 'entities', 'deal', 'deals',
+])
 
 export function parseQuery(input: string): ParsedQuery {
   const original = input.trim()
