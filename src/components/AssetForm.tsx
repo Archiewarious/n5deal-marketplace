@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { parsePriceToCents, formatPriceFull } from '@/lib/format'
 import { SECTORS } from '@/lib/types'
 import { AssetCard } from '@/components/AssetCard'
-import { useT } from '@/components/LocaleProvider'
+import { useLocale, useT } from '@/components/LocaleProvider'
+import { intlTag } from '@/lib/i18n'
 import type { Asset } from '@/lib/types'
 
 // One form, two jobs: publishing a listing and correcting one.
@@ -115,6 +116,7 @@ export function AssetForm({
   aiAvailable?: boolean
 }) {
   const t = useT()
+  const tag = intlTag(useLocale())
   const router = useRouter()
   const [v, setV] = useState<Values>(asset ? fromAsset(asset) : BLANK)
   const [busy, setBusy] = useState(false)
@@ -351,7 +353,7 @@ export function AssetForm({
               v.price
                 ? priceCents === null
                   ? t('form.priceUnreadable')
-                  : t('form.priceStored', { value: formatPriceFull(priceCents) })
+                  : t('form.priceStored', { value: formatPriceFull(priceCents, tag) })
                 : t('form.priceHint')
             }
           >
@@ -460,7 +462,7 @@ export function AssetForm({
         <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-faint">
           {t('form.preview')}
         </p>
-        <AssetCard t={t} asset={preview} showStatus linked={false} peersCents={[]} />
+        <AssetCard t={t} tag={tag} asset={preview} showStatus linked={false} peersCents={[]} />
       </div>
     </div>
   )

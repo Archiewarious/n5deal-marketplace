@@ -36,8 +36,9 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   // win over anything inferred from the text, because the user set them deliberately.
   const rawQuery = str(sp.q)
   const parsed = parseQuery(rawQuery)
-  const sector = str(sp.sector) || parsed.sector
-  const country = str(sp.country) || parsed.country
+  // `kind` is read by the filter below. The sector and country locals that used to sit here
+  // were left behind by the sort refactor: the filter reads wantSector/wantCountry, which are
+  // computed per row because the model's answer can override them.
   const kind = str(sp.kind)
   // A price the parser cannot read must not disappear silently. Filtering as if the field were
   // empty is the worst of the three options: the user sees every listing and believes the cap
@@ -45,7 +46,6 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   const rawMax = str(sp.max)
   const typedMaxCents = rawMax ? parsePriceToCents(rawMax) : null
   const maxPriceUnreadable = Boolean(rawMax) && typedMaxCents === null
-  const maxCents = typedMaxCents ?? parsed.maxPriceCents
   // "eight figures" is the kind of thing only the model reads, and it comes back as a floor
   // rather than a ceiling, so the URL has to be able to carry one.
   const rawMin = str(sp.min)
