@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/components/LocaleProvider'
@@ -301,7 +302,10 @@ export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
 
       <p className="mt-6 text-center text-xs text-faint">
         {t('login.everyAccount')}{' '}
-        <code className="font-mono text-muted">demo1234</code>.
+        <code className="font-mono text-muted">demo1234</code>.{' '}
+        <Link href="/register" className="text-accent-text hover:underline">
+          {t('login.createAccount')}
+        </Link>
       </p>
 
       {error && (

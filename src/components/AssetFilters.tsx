@@ -28,6 +28,9 @@ export function AssetFilters({
   const params = useSearchParams()
   const [q, setQ] = useState(params.get('q') ?? '')
   const [reading, setReading] = useState(false)
+  // Whether the last search fell back to literal words. The feature used to fail in silence,
+  // which is why it read as "nothing happens when I search".
+  const [fellBack, setFellBack] = useState(false)
 
   useEffect(() => {
     setQ(params.get('q') ?? '')
@@ -35,7 +38,12 @@ export function AssetFilters({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const text = q.trim()
+    run(q)
+  }
+
+  async function run(raw: string) {
+    const text = raw.trim()
+    setFellBack(false)
     // One word is a term, not a sentence. The parser handles those perfectly and instantly.
     if (!aiAvailable || text.split(/\s+/).length < 3) return apply({ q: text })
 
@@ -55,7 +63,12 @@ export function AssetFilters({
       })
       clearTimeout(timer)
       const out = await res.json()
-      if (!out?.ok) return apply({ q: text })
+      if (!out?.ok) {
+        // Say so. A free-tier key runs out of quota regularly, and an unannounced fallback is
+        // indistinguishable from a search box that does nothing.
+        setFellBack(true)
+        return apply({ q: text })
+      }
 
       // The resolved filters replace the SENTENCE, not the controls. Keeping the sentence would
       // filter twice — once by the model's reading and again by the parser's reading of the same
@@ -74,6 +87,7 @@ export function AssetFilters({
       next.set('reading', out.reading)
       router.push(`${pathname}?${next.toString()}`)
     } catch {
+      setFellBack(true)
       apply({ q: text })
     } finally {
       setReading(false)
@@ -98,6 +112,25 @@ export function AssetFilters({
           URL — so the page that loads is deterministic and the link is shareable. Everything
           about this is optional: no key, a failure, a timeout, and it falls back to pushing the
           raw query, which the deterministic parser on the server handles exactly as before. */}
+      {/* The feature was invisible: a box that looked like any other search box, no sign that a
+          sentence was allowed, and a silent fallback whenever the model was busy. Three things
+          fix that — it says what it is, it offers sentences to click, and it reports when the
+          model did not answer instead of quietly searching by words. */}
+      {aiAvailable && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-text/40 bg-accent/[0.07] px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-accent-text">
+            <svg viewBox="0 0 16 16" className="size-3" aria-hidden>
+              <path
+                d="M8 1.5l1.6 4.3 4.4 1.6-4.4 1.6L8 13.4l-1.6-4.4L2 7.4l4.4-1.6z"
+                fill="currentColor"
+              />
+            </svg>
+            {t('filters.aiBadge')}
+          </span>
+          <p className="text-xs text-muted">{t('filters.aiLead')}</p>
+        </div>
+      )}
+
       <form onSubmit={submit} className="flex gap-2">
         <input
           value={q}
@@ -117,6 +150,42 @@ export function AssetFilters({
           {reading ? t('filters.reading') : t('filters.search')}
         </button>
       </form>
+
+      {aiAvailable && (
+        <div className="-mt-1 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span className="text-xs text-faint">{t('filters.tryThis')}:</span>
+          {(['filters.ex1', 'filters.ex2', 'filters.ex3'] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => {
+                setQ(t(k))
+                run(t(k))
+              }}
+              disabled={reading}
+              className="rounded-full border border-dashed px-3 py-1 text-xs text-muted transition hover:border-accent-text hover:text-accent-text disabled:opacity-50"
+            >
+              {t(k)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {reading && (
+        <p role="status" className="-mt-1 flex items-center gap-2 text-xs text-accent-text">
+          <span
+            aria-hidden
+            className="size-3 animate-spin rounded-full border-2 border-accent-text/30 border-t-accent-text"
+          />
+          {t('filters.aiWorking')}
+        </p>
+      )}
+
+      {fellBack && !reading && (
+        <p role="status" className="-mt-1 text-xs text-warn">
+          {t('filters.aiFellBack')}
+        </p>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <button

@@ -73,16 +73,13 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
   for (const list of Object.values(pricesBySector)) list.sort((x, y) => x - y)
   const allPrices = all.map((a) => a.asking_price_cents).sort((x, y) => x - y)
 
-  // Compare within the sector when there are enough of them to form a distribution; fall back
-  // to the whole catalogue and say so, rather than showing nothing.
+  // Compare within the sector when there are enough of them to form a distribution, and fall
+  // back to the whole catalogue rather than showing nothing. The card no longer names the set:
+  // it shows a marker on a track and a percentage, and "dearer than 64% of Payment listings"
+  // does not fit there. The detail page draws the real chart and says which set it is.
   const peerSet = (a: Asset) => {
     const sectorPeers = pricesBySector[a.sector] ?? []
-    return sectorPeers.length >= 3
-      ? {
-          peersCents: sectorPeers,
-          peerLabel: t('chart.againstSector', { n: sectorPeers.length, sector: a.sector }),
-        }
-      : { peersCents: allPrices, peerLabel: t('chart.againstAll', { n: allPrices.length }) }
+    return sectorPeers.length >= 3 ? sectorPeers : allPrices
   }
   const countries = [...new Set(all.map((a) => a.country))].sort()
 
@@ -305,7 +302,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
               tag={tag}
               asset={a}
               matchScore={score}
-              {...peerSet(a)}
+              peersCents={peerSet(a)}
             />
             </div>
           ))}

@@ -59,6 +59,7 @@ export async function updateSession(request: NextRequest) {
     path === '/' ||
     path.startsWith('/login') ||
     path.startsWith('/opengraph-image') ||
+    path.startsWith('/register') ||
     path.startsWith('/design')
 
   if (!user && !isPublicRoute) {

@@ -16,7 +16,7 @@ import type { ParsedQuery } from './parseQuery'
 
 const LANG: Record<string, string> = { en: 'English', uk: 'Ukrainian', ru: 'Russian' }
 
-const MODEL = 'gemini-3.6-flash'
+const MODEL = 'gemini-3.5-flash-lite'
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`
 
 export const aiEnabled = () => Boolean(process.env.GEMINI_API_KEY)
