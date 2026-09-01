@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { parsePriceToCents, formatPriceFull } from '@/lib/format'
 import { SECTORS } from '@/lib/types'
@@ -117,7 +116,6 @@ export function AssetForm({
 }) {
   const t = useT()
   const tag = intlTag(useLocale())
-  const router = useRouter()
   const [v, setV] = useState<Values>(asset ? fromAsset(asset) : BLANK)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -168,7 +166,24 @@ export function AssetForm({
     setBusy(true)
     setError(null)
 
-    const row = {
+    /**
+   * Leave for the saved listing with a document load rather than router.push + router.refresh.
+   *
+   * The pair is a race. push starts fetching the new route while refresh invalidates and re-renders
+   * the current one, and when refresh wins the URL stays where it was — observed on the deployed
+   * build: a listing was inserted (row #40, visible in the database) and the browser ended up on
+   * /login holding a perfectly valid seller session, 56 minutes from expiry. Nothing was broken
+   * except the navigation, which is the worst kind of broken: to whoever is looking, publishing an
+   * asset threw them out of the app.
+   *
+   * A write is also exactly when the client router cache is most wrong, since every page that
+   * lists this listing has just gone stale. One document load settles both.
+   */
+  function leaveTo(path: string) {
+    window.location.assign(path)
+  }
+
+  const row = {
       title: v.title.trim(),
       description: v.description.trim() || null,
       country: v.country.trim(),
@@ -192,8 +207,7 @@ export function AssetForm({
       const { error } = await supabase.from('assets').update(row).eq('id', asset.id)
       setBusy(false)
       if (error) return setError(error.message)
-      router.push(`/assets/${asset.id}`)
-      router.refresh()
+      leaveTo(`/assets/${asset.id}`)
       return
     }
 
@@ -205,8 +219,7 @@ export function AssetForm({
 
     setBusy(false)
     if (error) return setError(error.message)
-    router.push(`/assets/${data.id}`)
-    router.refresh()
+    leaveTo(`/assets/${data.id}`)
   }
 
   // A plausible row for the preview. The id and the counters are placeholders; nothing here is
