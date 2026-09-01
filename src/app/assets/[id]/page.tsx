@@ -10,24 +10,9 @@ import { TopNav } from '@/components/TopNav'
 import { ContactForm } from '@/components/ContactForm'
 import { PriceChart } from '@/components/PriceChart'
 import { CountryTag } from '@/components/CountryTag'
+import { ListingStatusControl } from '@/components/ListingStatusControl'
+import { sectorTone } from '@/lib/sector'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
-
-function Field({
-  t,
-  label,
-  value,
-}: {
-  t: Awaited<ReturnType<typeof getT>>
-  label: string
-  value: string | number | null
-}) {
-  return (
-    <div className="rounded-lg border bg-field px-3 py-2">
-      <p className="text-[10px] uppercase tracking-wider text-faint">{label}</p>
-      <p className="text-sm">{value ?? t('card.na')}</p>
-    </div>
-  )
-}
 
 const STATE_KEY: Record<Asset['status'], string> = {
   PUBLISHED: 'state.published',
@@ -102,6 +87,8 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
     if (mandate) match = matchAssetToBuyer(asset, mandate)
   }
 
+  const tone = sectorTone(asset.sector)
+
   return (
     <>
       <TopNav profile={profile} />
@@ -127,10 +114,47 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 </span>
               )}
             </div>
-            <h1 className="display text-3xl font-semibold">{asset.title}</h1>
-            <div className="mt-3">
+            {/* Issuer and jurisdiction above the title, the same way the card reads them: that
+                pair is the product, and printing it here removes the Country and Type-of-business
+                boxes that used to repeat it four rows further down. */}
+            <p className="mt-3 text-[11px] uppercase tracking-[0.14em] text-faint">
+              {t('card.issuedBy')}
+            </p>
+            <div className="mt-1.5 mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <CountryTag country={asset.country} size="lg" />
+              <span className="text-sm font-medium">{asset.regulator ?? t('card.na')}</span>
+              <span className="text-sm text-muted">· {asset.country}</span>
             </div>
+            <h1 className="display text-3xl font-semibold">{asset.title}</h1>
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 font-mono text-xs text-muted">
+              <span className={`font-medium ${tone.text}`}>{asset.license_type}</span>
+              <span className="text-faint">/</span>
+              <span>{asset.sector}</span>
+              {asset.year_of_issue !== null && (
+                <>
+                  <span className="text-faint">/</span>
+                  <span>
+                    {t('card.inForce')} {asset.year_of_issue}
+                  </span>
+                </>
+              )}
+              {asset.employees !== null && (
+                <>
+                  <span className="text-faint">/</span>
+                  <span>{asset.employees} FTE</span>
+                </>
+              )}
+              <span className="text-faint">/</span>
+              <span className={asset.business_state === 'ACTIVE' ? 'text-ok' : 'text-faint'}>
+                {asset.business_state === 'ACTIVE' ? t('card.active') : t('card.notActive')}
+              </span>
+              <span className="text-faint">/</span>
+              <span>
+                {asset.asset_kind === 'LICENSE_ONLY'
+                  ? t('filters.licenceOnly')
+                  : t('filters.activeBusiness')}
+              </span>
+            </p>
             {seller && (
               <p className="mt-1 text-sm text-muted">
                 {t('listing.listedBy')} {seller.company ?? seller.full_name} ·{' '}
@@ -140,6 +164,12 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
           </div>
 
           <div className="flex items-center gap-3">
+            {/* A manager reading a listing is exactly when they decide it does not belong on
+                the platform, and until now the only place to act on that was the moderation
+                table, with the listing they had just been reading no longer in front of them. */}
+            {profile.role === 'MANAGER' && (
+              <ListingStatusControl assetId={asset.id} status={asset.status} />
+            )}
             {asset.seller_id === profile.id && (
               <Link
                 href={`/seller/assets/${asset.id}/edit`}
@@ -189,49 +219,39 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
           </section>
         )}
 
-        <section className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Field t={t} label={t('card.country')} value={asset.country} />
-          <Field t={t} label={t('card.typeOfLicence')} value={asset.license_type} />
-          <Field t={t} label={t('card.typeOfBusiness')} value={asset.sector} />
-          <Field
-            t={t}
-            label={t('card.businessStatus')}
-            value={asset.business_state === 'ACTIVE' ? t('card.active') : t('card.notActive')}
-          />
-          <Field
-            t={t}
-            label={t('listing.assetType')}
-            value={
-              asset.asset_kind === 'LICENSE_ONLY'
-                ? t('filters.licenceOnly')
-                : t('filters.activeBusiness')
-            }
-          />
-          <Field t={t} label={t('card.employees')} value={asset.employees} />
-          <Field t={t} label={t('card.yearOfIssue')} value={asset.year_of_issue} />
-          <Field t={t} label={t('card.regulatory')} value={asset.regulator} />
-        </section>
-
+        {/* What the licence permits, at reading size. It was a row of grey chips under eight
+            label/value boxes; it is the thing a buyer is choosing between. */}
         {asset.included_activities.length > 0 && (
-          <section className="mb-3 rounded-xl border border-accent-text/15 bg-accent/[0.07] p-5">
-            <p className="mb-3 text-sm text-accent-text">{t('card.included')}</p>
-            <div className="flex flex-wrap gap-2">
+          <section className="mb-6 rounded-xl border bg-surface p-5">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-faint">
+              {t('card.permits')}
+            </p>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {asset.included_activities.map((a) => (
-                <span
-                  key={a}
-                  className="rounded-full border bg-surface px-3 py-1.5 text-sm text-muted"
-                >
+                <li key={a} className="flex items-center gap-2.5 text-sm">
+                  <svg viewBox="0 0 16 16" className={`size-4 shrink-0 ${tone.text}`} aria-hidden>
+                    <path
+                      d="M3 8.5l3.5 3.5L13 4.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                   {a}
-                </span>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         )}
 
         {asset.description && (
-          <section className="mb-6 rounded-xl border border-accent-text/15 bg-accent/[0.07] p-5">
-            <p className="mb-2 text-sm text-accent-text">{t('card.assetInfo')}</p>
-            <p className="text-sm leading-relaxed text-muted">{asset.description}</p>
+          <section className="mb-6 rounded-xl border bg-surface p-5">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-faint">
+              {t('card.assetInfo')}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed">{asset.description}</p>
           </section>
         )}
 
