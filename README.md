@@ -66,6 +66,17 @@ there is nothing to type.
   ones included, with suspend and remove behind a confirmation.
 - **/messages** groups messages into conversations with a reply at the end of each. A manager
   sees the flat log instead, because they are a party to none of them.
+- **/register** is a real sign-up, next to the demo accounts rather than instead of them. A fresh
+  account owns nothing and has nobody to message, so the demo accounts are still the faster way
+  in; what this page is worth looking at for is where the role comes from. It is sent as sign-up
+  metadata and not trusted: a trigger builds the profile row and clamps anything that is not
+  exactly SELLER to BUYER, so a request asking for MANAGER gets an ordinary buyer account
+  (`supabase/06_signup.sql`). Checked by asking for it.
+- **The search box on /assets takes a sentence.** "crypto in Estonia under 500k" resolves to
+  sector, jurisdiction and a price cap, and those land in the URL rather than the sentence, so
+  the link you send someone carries what was understood. Three examples sit under the box; the
+  band above the results shows the model's own reading of what you typed. When the model does not
+  answer, the page says so and searches your words literally instead of pretending.
 
 The most interesting thing to try is the **suspended buyer**. Sign in as
 `buyer.solace@n5demo.com` and the catalogue is empty — not filtered, empty. The rows never
@@ -204,6 +215,15 @@ No parser gets from "eight figures" to a price floor.
 So `src/lib/ai.ts` sits on top and the parser stays underneath as the floor. **Nothing about the
 model is load-bearing**: with no `GEMINI_API_KEY`, with a timeout, with a quota wall, the box
 falls back to the parser, and a reviewer who cloned this repo without a key should not notice.
+
+**Which model, also measured.** The first choice was `gemini-3.6-flash`, and on a free key it
+answered 0 of 8 requests in a burst — every call after the first hit the per-minute quota, so the
+feature silently degraded to the parser exactly when someone was clicking around trying it out.
+Running the same burst against its siblings put `gemini-3.5-flash-lite` at 8 of 8 with the same
+structured output and the same thinking level, so that is what runs. The point is not that the
+lighter model is better; it is that a quota wall you hit on the second click makes a feature
+indistinguishable from a broken one, and the only way to know was to measure rather than to read
+the pricing page.
 
 The budget is 14 seconds, and that number is measurement rather than taste: the same query
 came back in 4.3s, 8.4s and 12.4s on three consecutive tries against this free key. A 6s budget
