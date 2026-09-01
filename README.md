@@ -38,8 +38,9 @@ trigger and index read straight out of the running instance. Why each of them ex
 [supabase/SECURITY.md](supabase/SECURITY.md).
 
 ```bash
-npm test          # 42 tests, no framework, node --test
-npm run build     # production build
+npm test              # 42 tests, no framework, node --test
+npm run build         # production build
+npm run verify:access # proves the access rules against a running deployment
 ```
 
 ---
@@ -187,12 +188,29 @@ The interface claims are numbers taken off the running page, not intentions:
 | Touch targets at 390px | 0 below 44px |
 | Form controls without an accessible name | 0 of 14 |
 | Horizontal overflow at 375px | none |
-| Access matrix, 12 routes × 5 roles | no route renders data to a role that should not see it |
+| Access matrix, 10 routes × 5 roles | no route renders data to a role that should not see it |
+| Rows readable straight from PostgREST, 4 tables × 5 roles | a suspended account reads 0 listings, not a filtered list |
+| Column guards RLS cannot express | a seller cannot set `validated` on insert or on update, or move its own view count |
 
 Two of those failed the first time they were measured — contrast at 4.37:1 on the card's own
 labels, and 43 of 49 controls under the touch floor. Both are in the git history rather than
 quietly fixed, because the interesting part is that neither was visible while using the app on a
 laptop.
+
+The bottom three rows are not a claim, they are a command:
+
+```bash
+npm run verify:access                       # against the deployed app
+npm run verify:access http://localhost:3000 # or your own
+```
+
+It signs in as each demo account, asks for every route, then goes around the application entirely
+and asks PostgREST directly with each role's own token — which is what somebody with a stolen
+session and `curl` would do. It exits non-zero on the first thing that does not hold.
+
+`npm test`, the typecheck and the build run on every push through GitHub Actions
+(`.github/workflows/ci.yml`). The access verification does not: it writes to the live database,
+and attaching that to a pull request anyone can open is a worse idea than running it by hand.
 
 ---
 

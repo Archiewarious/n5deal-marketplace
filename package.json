@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test \"src/**/*.test.ts\""
+    "test": "node --test \"src/**/*.test.ts\"",
+    "verify:access": "node scripts/verify-access.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
