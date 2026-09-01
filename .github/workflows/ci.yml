@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Types first: it is the cheapest of the three and the one most likely to fail.
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
+
+      # The build needs the public Supabase variables to exist, not to be correct — every page
+      # is rendered per request, so nothing here talks to the database. Placeholders keep the
+      # real project out of CI while still proving the app compiles.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+
+# Deliberately not run here: scripts/verify-access.mjs. It signs in as the demo accounts and
+# reads the live database, which makes it the most valuable check in the repository and the wrong
+# thing to attach to every commit — it would write to the production project from a pull request
+# opened by anyone. It is run by hand against a deployment, and its output is in the README.
