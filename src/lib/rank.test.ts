@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { pricePercentile } from './rank'
+import { pricePercentile } from './rank.ts'
 
 test('the cheapest listing is 0 and the dearest is 100', () => {
   const peers = [100, 200, 300, 400]
