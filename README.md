@@ -27,8 +27,8 @@ optional — without it the AI features fall back to deterministic code and noth
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key |
 | `GEMINI_API_KEY` | Google AI Studio. Optional |
 
-To build the database from nothing, run the six files in `supabase/` in order, `01_schema.sql`
-through `06_signup.sql`, in the Supabase SQL editor. `02_seed.sql` creates the demo accounts and
+To build the database from nothing, run the seven files in `supabase/` in order, `01_schema.sql`
+through `07_views.sql`, in the Supabase SQL editor. `02_seed.sql` creates the demo accounts and
 the listings. What each of the later files fixes, and how it was found, is in
 [supabase/SECURITY.md](supabase/SECURITY.md).
 

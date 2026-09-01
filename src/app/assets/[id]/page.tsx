@@ -11,6 +11,7 @@ import { ContactForm } from '@/components/ContactForm'
 import { PriceChart } from '@/components/PriceChart'
 import { CountryTag } from '@/components/CountryTag'
 import { ListingStatusControl } from '@/components/ListingStatusControl'
+import { ViewPing } from '@/components/ViewPing'
 import { sectorTone } from '@/lib/sector'
 import type { Asset, BuyerProfile, Profile } from '@/lib/types'
 
@@ -92,6 +93,9 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <TopNav profile={profile} />
+      {/* Counts a view once, from the browser. The seller looking at their own listing is filtered
+          out in the database function rather than here, so the rule holds for any caller. */}
+      <ViewPing assetId={asset.id} />
       <main id="content" className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">
         <Link href="/assets" className="text-xs text-faint transition hover:text-fg">
           ← {t('listing.allListings')}
