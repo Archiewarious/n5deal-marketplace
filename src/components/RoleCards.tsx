@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/components/LocaleProvider'
 
@@ -111,27 +110,65 @@ const TONE: Record<Tone, { text: string; bg: string; border: string; bar: string
  */
 export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
   const t = useT()
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // `busy` disables the buttons, but a state update does not land until React re-renders, so two
+  // clicks inside the same tick both get through it. A ref changes on the spot.
+  const running = useRef(false)
 
+  /**
+   * Sign in and leave through a full page load.
+   *
+   * This used to be signInWithPassword + router.push + router.refresh, and it failed in the way
+   * that is worst to debug: silently, and only sometimes. Clicking a second role before the first
+   * finished ran two token exchanges at once; the second one's push cancelled the first one's
+   * in-flight RSC request, nothing navigated, and nothing was shown. The session cookie was
+   * already written by then, so the visitor sat on the role picker, signed in, being told nothing
+   * — reloading the page would have dropped them straight into the app. Reproduced on the
+   * deployed build: two clicks, ten seconds, still on /login with a valid auth cookie.
+   *
+   * Three changes, each closing one door:
+   *
+   *   The ref above makes a second concurrent sign-in impossible rather than merely unlikely.
+   *
+   *   signOut() first, so switching roles always starts from an empty session instead of relying
+   *   on the new cookie overwriting the old one cleanly.
+   *
+   *   location.assign instead of router.push, because a role switch changes who every server
+   *   component on the next page is rendering for. The App Router would happily serve /assets
+   *   from the client router cache — the copy it rendered for the previous role — and
+   *   router.refresh() racing to invalidate it is exactly the kind of ordering that works on a
+   *   fast connection and not on a slow one. A document load has no such race: the server reads
+   *   the new cookie on the first request and there is nothing cached to serve.
+   *
+   * The cost is one full page load per role switch, on a screen whose entire purpose is switching
+   * roles. That is the right trade.
+   */
   async function signIn(withEmail: string, withPassword: string) {
+    if (running.current) return
+    running.current = true
     setBusy(withEmail)
     setError(null)
+
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email: withEmail,
-      password: withPassword,
-    })
-    if (error) {
-      setError(error.message)
+    try {
+      await supabase.auth.signOut()
+      const { error } = await supabase.auth.signInWithPassword({
+        email: withEmail,
+        password: withPassword,
+      })
+      if (error) throw error
+      window.location.assign('/assets')
+    } catch (e) {
+      // Whatever went wrong, it is now on screen. The previous version could only report an
+      // error from one specific call, and reported nothing at all when navigation was the thing
+      // that failed.
+      setError(e instanceof Error ? e.message : String(e))
       setBusy(null)
-      return
+      running.current = false
     }
-    router.push('/assets')
-    router.refresh()
   }
 
   return (
