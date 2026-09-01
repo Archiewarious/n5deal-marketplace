@@ -53,14 +53,11 @@ export async function updateSession(request: NextRequest) {
   // extension exclusions never caught it — and this list is what a link preview crawler hits.
   // A public landing page that declares an image and then 307s the crawler to /login previews
   // as a bare URL, which is exactly what the image was added to prevent.
-  // /design is a scratch page for choosing a card design. It reads nothing and holds nothing;
-  // it is public so the link opens on a phone without a login. It goes when a design is picked.
   const isPublicRoute =
     path === '/' ||
     path.startsWith('/login') ||
     path.startsWith('/opengraph-image') ||
-    path.startsWith('/register') ||
-    path.startsWith('/design')
+    path.startsWith('/register')
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
