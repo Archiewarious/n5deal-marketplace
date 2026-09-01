@@ -46,7 +46,8 @@ export function Pagination({
    * from the top of the document. And a bare <span> carries no disabled semantics at all, which
    * means the WCAG exemption for inactive controls does not apply to it and its text is held to
    * the full 4.5:1 — which `opacity-50` over --faint failed at 1.97:1, because --faint is
-   * already documented as sitting on the 4.8:1 floor.
+   * the token nearest the floor — it is chosen to clear 4.5:1 on the lightest surface it can
+   * land on, with nothing spare for an opacity multiplier to spend.
    *
    * So: same element, aria-disabled, out of the tab order, and dimmed by colour rather than by
    * opacity so the contrast stays measurable.

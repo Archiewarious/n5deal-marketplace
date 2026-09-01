@@ -269,6 +269,15 @@ Every colour is measured against its own ground rather than eyeballed. The small
 10px, so 4.5:1 is the floor, and `globals.css` records the ratio beside the values that sit near
 it — `#767d89` was rejected at 3.8:1 before `#666d78` passed at 4.8:1.
 
+That measurement was taken against one ground, and the token is used on four. A later pass
+walked every text style on the catalogue and computed its ratio against the background it
+actually sits on: `--faint` held at 4.8:1 on `--app`, but fell to 4.37:1 on `--surface` and
+3.89:1 on `--elevated` — which is where the card's own eyebrow labels sit, sixteen of them to
+a screenful. Both themes moved to the value that clears 4.5:1 on the *lightest* ground it can
+land on: `#94949a` in dark (worst case 4.74:1) and `#626974` in light (4.77:1). Checking a
+colour against the page background is not checking it; it has to be checked against every
+surface it is allowed to appear on.
+
 The five sectors get five hues, and that is the one place colour is allowed to multiply: category
 is the first thing a buyer narrows on, and across thirty cards a chip you can find by colour
 beats a word you have to read. The colour is never the only carrier — the sector is always named

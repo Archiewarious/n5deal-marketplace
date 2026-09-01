@@ -68,7 +68,7 @@
   /* 5.7:1 */
   --muted: #5a616c;
   /* 4.8:1 — the floor for 10-11px labels */
-  --faint: #666d78;
+  --faint: #626974;
   /* deep navy fill; white on it is 10.6:1 */
   --accent: #1d3f6b;
   --accent-fg: #ffffff;
@@ -136,7 +136,7 @@
     /* 6.3:1 */
     --muted: #9c9c9e;
     /* 4.7:1 */
-    --faint: #85858a;
+    --faint: #94949a;
     --accent: #1d3f6b;
     --accent-fg: #ffffff;
     /* the same hue opened up until it can carry text on a dark ground: 7.0:1 */
@@ -176,7 +176,7 @@
   --line: #2f2f33;
   --fg: #edece9;
   --muted: #9c9c9e;
-  --faint: #85858a;
+  --faint: #94949a;
   --accent: #1d3f6b;
   --accent-fg: #ffffff;
   --accent-text: #7fa8d8;
@@ -299,6 +299,37 @@
 :root:lang(uk) .display,
 :root:lang(ru) .display {
   letter-spacing: -0.038em;
+}
+
+/* ── Touch targets ───────────────────────────────────────────────────────────
+   A measured pass over the catalogue on a 390px viewport found 43 of 49 controls under the 44px
+   floor: 26px example chips, 32px navigation links and selects, 34px filter chips, 36px
+   pagination. All of them are comfortable with a mouse, and all of them are a thumb-width gamble.
+
+   The floor is applied only where the pointer is coarse, so the desktop layout keeps its density
+   and nothing grows for a mouse that does not need it. `min-height` rather than `height` because
+   a control that is already taller should stay as it is; buttons, selects and inputs centre their
+   own content, and the anchors that need it are told to. */
+@media (pointer: coarse) {
+  button,
+  select,
+  summary,
+  [role='button'],
+  input:not([type='hidden']):not([type='radio']):not([type='checkbox']) {
+    min-height: 44px;
+  }
+
+  /* Anchors are text by default, and a min-height does nothing to an inline box. Only the ones
+     that behave as controls are converted — navigation, the footer, and the call to action at the
+     end of a card. The title link inside a card is deliberately left alone: it wraps across lines
+     and inline-flex would stop it. */
+  header a,
+  footer a,
+  nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }
 
 * {
