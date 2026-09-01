@@ -169,16 +169,83 @@ the price percentile, and dictionary consistency across three languages.
 What tests did not catch, and clicking did, is written up in
 [docs/DECISIONS.md](docs/DECISIONS.md#the-defect-that-clicking-found-and-the-build-did-not).
 
+### Measured, not assumed
+
+The interface claims are numbers taken off the running page, not intentions:
+
+| Check | Result |
+|---|---|
+| Text contrast, 23 distinct styles, alpha layers composited | 0 below 4.5:1 |
+| Focus ring against every surface it lands on | 5.78:1 dark, 9.15:1 light (needs 3:1) |
+| Touch targets at 390px | 0 below 44px |
+| Form controls without an accessible name | 0 of 14 |
+| Horizontal overflow at 375px | none |
+| Access matrix, 12 routes × 5 roles | no route renders data to a role that should not see it |
+
+Two of those failed the first time they were measured — contrast at 4.37:1 on the card's own
+labels, and 43 of 49 controls under the touch floor. Both are in the git history rather than
+quietly fixed, because the interesting part is that neither was visible while using the app on a
+laptop.
+
 ---
 
 ## What I would do with more time
 
-- **Unread state for messages.** Needs a `read_at` column; a marketplace where you cannot see
-  what is new is not finished.
+### Design
+
+The visual language is settled — a listing reads as the instrument it is, issuer and jurisdiction
+first, permissions in the middle — but it is one card and one page deep.
+
+- **A design system, not a palette.** The tokens are real and semantic; the components that use
+  them have no documented contract. Two people building the next screen would produce two
+  interpretations of the same card.
+- **Motion that means something.** Today it is entrance animation, which is decoration. The moves
+  worth animating are the ones that carry state: a listing leaving the catalogue when it is
+  suspended, a filter narrowing the set, a message arriving.
+- **The listing page could go further.** It reads as a document now; it could read as *the*
+  document — the register entry, with the regulator's own language and a link back to the public
+  register the entry comes from.
+- **Empty and loading states are handled, not designed.** They are correct and plain. On a
+  marketplace with 30 listings that is fine; on one with three in your jurisdiction it is the
+  first impression.
+
+### The product, and getting closer to the customer
+
+What is built is the discovery half of a marketplace: find, filter, contact. The half that makes
+it a business is missing, and it is the half where the customer actually lives.
+
+- **A deal room.** Right now two parties meet, exchange messages, and take the deal off the
+  platform — which is exactly where the platform stops being useful and stops being paid. The
+  missing surface is a private room per deal: a document checklist the transaction actually needs
+  (the licence, audited accounts, regulatory correspondence, the register extract), per-document
+  status, an NDA gate before anything opens, and both sides seeing the same list.
+- **A verification desk.** `validated` is one boolean a manager sets. For a seven-figure purchase
+  it should be a record: who checked, against which public register, on what date, and when the
+  check goes stale. A tick is a claim; an audit trail is a reason to trust the platform.
+- **Saved searches and alerts.** The mandate already says precisely what a buyer wants. Nothing
+  tells them when it arrives. This is the cheapest retention feature on the list and the most
+  obvious one to a buyer who checks back weekly and finds nothing new.
+- **Analytics for the seller.** The view counter works now; the useful version answers *which
+  mandates match this listing*, *what did comparable licences ask*, and *where does interest drop
+  off*. A seller who cannot see why a listing is not moving lowers the price blindly.
+- **A fourth side: brokers and advisers.** Real deals in this market run through an adviser acting
+  for one side. Today they would have to borrow an account. A delegated role — acting for a named
+  client, visible as such to the other party — is a product decision, not a permission tweak.
+- **Onboarding per role.** A new account lands in a working product with nothing in it. A buyer
+  should be asked for their mandate first, because it is what makes the catalogue useful; a seller
+  should be walked into their first listing.
+- **Escrow and milestones** are the department after that, and the point at which this stops being
+  a prototype and starts needing a lawyer.
+
+### Engineering
+
+- **Unread state for messages.** Needs a `read_at` column. A marketplace where you cannot see what
+  is new is not finished.
 - **Move filtering into Postgres.** Correct at 30 listings, wrong at 1,000.
-- **A real screen-reader pass.** Roles, labels and focus order are done by hand and reasoned
-  about, but reasoning is not testing.
-- **Saved searches and alerts.** The mandate already describes what a buyer wants; nothing yet
-  tells them when it arrives.
-- **Audit trail for moderation.** Who suspended whom, when, and why. Today the state changes and
-  the reason does not survive.
+- **A real screen-reader pass.** Contrast, focus and touch targets are measured, not assumed — see
+  `docs/DECISIONS.md`. Semantics and reading order are reasoned about, and reasoning is not
+  testing.
+- **An audit trail for moderation.** Who suspended whom, when, and why. Today the state changes
+  and the reason does not survive.
+- **End-to-end tests for the role matrix.** It is verified by a script per release; it should be
+  verified by CI on every commit.

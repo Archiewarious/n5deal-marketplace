@@ -5,8 +5,12 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 // Without this a pasted link previews as a bare URL, which is how a prototype looks like a
-// prototype. Generated rather than shipped as a file so it cannot drift from the palette, and
-// deliberately typographic: there is no photograph of a licence worth faking.
+// prototype. Generated rather than shipped as a file, and deliberately typographic: there is no
+// photograph of a licence worth faking.
+//
+// The one place in the app where raw hex is correct rather than lazy. Satori has no stylesheet
+// and no CSS variables, so these are hand-copied from the dark palette in globals.css — which
+// means they can drift, and did: --faint moved for contrast and this file had to move with it.
 export default function OpengraphImage() {
   return new ImageResponse(
     (
@@ -39,7 +43,7 @@ export default function OpengraphImage() {
           >
             N5
           </div>
-          <div style={{ color: '#85858a', fontSize: 22, letterSpacing: 4 }}>LICENCE REGISTER</div>
+          <div style={{ color: '#94949a', fontSize: 22, letterSpacing: 4 }}>LICENCE REGISTER</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
