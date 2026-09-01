@@ -214,6 +214,18 @@ placeholder renders a hole, and one that renames it renders `{count}` to a user.
 
 ### Three cuts, two families, and a tracking scale
 
+The typeface decision was not improvised. It came out of a design methodology the owner already
+uses — a UI/UX rule library whose typography table has a row for exactly this domain: *Financial
+Trust — banks, finance, insurance, investment, fintech; excellent for data.* The tracking scale
+below comes from the same source, the "Modern Dark Cinema" row it recommends for dark fintech
+interfaces: display -1.5, headings -0.5, uppercase labels +1.2, converted to em so they hold at
+every size.
+
+The library itself is MIT licensed and lived under `.claude/skills/` for a while. It is not
+committed: it is a third-party toolkit rather than part of this project, and it accounted for 150
+of 239 tracked files — a work sample should be the work, not the toolbox it was made with. What
+it produced is here; what produced it is not.
+
 The typography went through two wrong answers before this one, and both are worth the record.
 
 The original loaded `subsets: ['latin']`, so Cyrillic was not in the webfont at all and every

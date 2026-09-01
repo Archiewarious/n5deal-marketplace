@@ -44,3 +44,7 @@ next-env.d.ts
 
 # local dev
 dev.log
+
+# Local agent tooling. The design skills under here are a third-party MIT library copied in
+# for methodology; they are not part of the deliverable and made up 150 of 239 tracked files.
+.claude/
