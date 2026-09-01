@@ -96,7 +96,11 @@ function SignOut({ t }: { t: Awaited<ReturnType<typeof getT>> }) {
   async function signOut() {
     'use server'
     const supabase = await createClient()
-    await supabase.auth.signOut()
+    // Local scope, not the library's global default. Global revokes every session this account
+    // has anywhere, and these are six shared demo accounts: one reviewer signing out would throw
+    // every other reviewer on the same account out of their own browser, holding a cookie that
+    // still looks valid and now points at a session the server has deleted.
+    await supabase.auth.signOut({ scope: 'local' })
     const { redirect } = await import('next/navigation')
     redirect('/login')
   }

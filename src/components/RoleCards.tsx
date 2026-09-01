@@ -133,8 +133,15 @@ export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
    *
    *   The ref above makes a second concurrent sign-in impossible rather than merely unlikely.
    *
-   *   signOut() first, so switching roles always starts from an empty session instead of relying
-   *   on the new cookie overwriting the old one cleanly.
+   *   signOut({ scope: 'local' }) first, so switching roles always starts from an empty session
+   *   instead of relying on the new cookie overwriting the old one cleanly. The scope is not
+   *   decoration: the library defaults to 'global', which revokes every session the account holds
+   *   anywhere. On six shared demo accounts that turns switching role in one tab into signing
+   *   everyone else out — and it does not look like being signed out, because the browser keeps a
+   *   cryptographically valid, unexpired cookie whose session the server has deleted. Middleware
+   *   verifies the JWT locally and waves it through; the page calls getUser(), Supabase answers
+   *   session_not_found, and every protected route bounces to the role picker. Which is exactly
+   *   the "I click a role and it does not log me in" this file was opened to fix.
    *
    *   location.assign instead of router.push, because a role switch changes who every server
    *   component on the next page is rendering for. The App Router would happily serve /assets
@@ -154,7 +161,7 @@ export function RoleCards({ showExtras = true }: { showExtras?: boolean }) {
 
     const supabase = createClient()
     try {
-      await supabase.auth.signOut()
+      await supabase.auth.signOut({ scope: 'local' })
       const { error } = await supabase.auth.signInWithPassword({
         email: withEmail,
         password: withPassword,
