@@ -29,7 +29,12 @@ optional — without it the AI features fall back to deterministic code and noth
 
 To build the database from nothing, run the seven files in `supabase/` in order, `01_schema.sql`
 through `07_views.sql`, in the Supabase SQL editor. `02_seed.sql` creates the demo accounts and
-the listings. What each of the later files fixes, and how it was found, is in
+the listings.
+
+Those seven are the history — how the database got here, including the two access-control holes
+that were found live and closed. If the question is just *what are the rules today*, read
+**[supabase/CURRENT_STATE.sql](supabase/CURRENT_STATE.sql)** instead: every function, policy,
+trigger and index read straight out of the running instance. Why each of them exists is in
 [supabase/SECURITY.md](supabase/SECURITY.md).
 
 ```bash
@@ -122,7 +127,9 @@ account. Checked by asking for it.
 tests, chosen by cookie rather than by URL segment so every route stays single.
 
 → The reasoning behind each of these, and the eight decisions not listed here, is in
-**[docs/DECISIONS.md](docs/DECISIONS.md)**.
+**[docs/DECISIONS.md](docs/DECISIONS.md)**. The design methodology those choices came out of —
+the rule library, and what changed when the interface was measured against it rather than
+compared to it — is in **[tools/README.md](tools/README.md)**.
 
 ---
 
