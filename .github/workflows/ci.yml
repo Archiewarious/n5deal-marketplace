@@ -18,21 +18,27 @@ jobs:
 
       - run: npm ci
 
-      # Types first: it is the cheapest of the three and the one most likely to fail.
-      - name: Typecheck
-        run: npx tsc --noEmit
-
+      # Tests are the cheapest and depend on nothing, so they go first.
       - name: Tests
         run: npm test
 
-      # The build needs the public Supabase variables to exist, not to be correct — every page
-      # is rendered per request, so nothing here talks to the database. Placeholders keep the
-      # real project out of CI while still proving the app compiles.
+      # The build has to run before the typecheck, and the reason is not obvious enough to leave
+      # unwritten: Next generates route and layout types into .next/types during a build, and
+      # `LayoutProps` is one of them. On a clean checkout tsc has never seen it, so putting the
+      # typecheck first fails on a file that is perfectly correct. This is the first thing CI
+      # caught, on its first run.
+      #
+      # The public Supabase variables have to exist, not to be correct: every page renders per
+      # request, so nothing here talks to a database. Placeholders keep the real project out of
+      # CI while still proving the app compiles.
       - name: Build
         run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+
+      - name: Typecheck
+        run: npx tsc --noEmit
 
 # Deliberately not run here: scripts/verify-access.mjs. It signs in as the demo accounts and
 # reads the live database, which makes it the most valuable check in the repository and the wrong
